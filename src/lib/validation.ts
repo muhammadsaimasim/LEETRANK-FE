@@ -1,0 +1,91 @@
+import { z } from 'zod';
+
+export const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+export const registerSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters')
+    .regex(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces'),
+  email: z
+    .string()
+    .email('Please enter a valid email address')
+    .max(255, 'Email must be less than 255 characters'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  leetcodeUsername: z
+    .string()
+    .min(1, 'LeetCode username is required')
+    .max(50, 'Username must be less than 50 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens, and underscores'),
+  leetcodeProfileURL: z
+    .string()
+    .url('Please enter a valid URL')
+    .regex(/leetcode\.com/, 'URL must be a LeetCode profile URL'),
+  batch: z.string().min(1, 'Please select your batch'),
+  department: z.string().optional(),
+});
+
+export const profileUpdateSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters')
+    .regex(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces')
+    .optional(),
+  batch: z.string().optional(),
+  department: z.string().max(100).optional(),
+});
+
+export const leetcodeUpdateSchema = z.object({
+  leetcodeUsername: z
+    .string()
+    .min(1, 'LeetCode username is required')
+    .max(50, 'Username must be less than 50 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens, and underscores'),
+  leetcodeProfileURL: z
+    .string()
+    .url('Please enter a valid URL')
+    .regex(/leetcode\.com/, 'URL must be a LeetCode profile URL'),
+});
+
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Password must contain at least one number')
+      .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'New password must be different from current password',
+    path: ['newPassword'],
+  });
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'Password is required to delete account'),
+});
+
+export type LoginFormData = z.infer<typeof loginSchema>;
+export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ProfileUpdateFormData = z.infer<typeof profileUpdateSchema>;
+export type LeetcodeUpdateFormData = z.infer<typeof leetcodeUpdateSchema>;
+export type PasswordChangeFormData = z.infer<typeof passwordChangeSchema>;
+export type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;

@@ -1,0 +1,389 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* LeetRank Design System - Light Mode */
+    /* Clean, professional with coding aesthetic */
+    --background: 220 20% 97%;
+    --foreground: 222 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 12%;
+
+    --popover: 220 15% 95%;
+    --popover-foreground: 222 25% 12%;
+
+    /* Energetic orange - competition/action color */
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Deep violet - premium/rank color */
+    --secondary: 262 55% 40%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 15% 88%;
+    --muted-foreground: 220 15% 45%;
+
+    /* Subtle accent */
+    --accent: 220 20% 94%;
+    --accent-foreground: 25 95% 45%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 85% 97%;
+
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 25 95% 53%;
+
+    --radius: 0.5rem;
+
+    /* LeetRank Custom Colors */
+    --leetrank-gold: 45 100% 50%;
+    --leetrank-silver: 220 10% 58%;
+    --leetrank-bronze: 30 55% 45%;
+
+    /* Coding difficulty colors - classic LeetCode style */
+    --difficulty-easy: 152 60% 42%;
+    --difficulty-medium: 38 92% 50%;
+    --difficulty-hard: 0 72% 52%;
+
+    --success: 152 60% 42%;
+    --warning: 38 92% 50%;
+
+    /* Terminal accent */
+    --terminal: 160 55% 40%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(262, 55%, 48%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(220, 20%, 97%) 0%, hsl(220, 22%, 94%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(220, 20%, 98%) 100%);
+    --gradient-code: linear-gradient(145deg, hsl(222, 30%, 14%) 0%, hsl(262, 25%, 18%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0px hsl(222 25% 15% / 0.04);
+    --shadow-md: 0 4px 8px -2px hsl(222 25% 15% / 0.06);
+    --shadow-lg: 0 8px 20px -4px hsl(222 25% 15% / 0.08);
+    --shadow-xl: 0 16px 36px -8px hsl(222 25% 15% / 0.1);
+    --shadow-glow: 0 0 40px -8px hsl(25, 95%, 53%, 0.35);
+    --shadow-violet: 0 8px 24px -6px hsl(262 55% 40% / 0.2);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 25% 12%;
+    --sidebar-primary: 25 95% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 262 55% 40%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 15% 88%;
+    --sidebar-ring: 25 95% 53%;
+    --chart-1: 25 95% 53%;
+    --chart-2: 38 92% 55%;
+    --chart-3: 262 55% 50%;
+    --chart-4: 152 60% 45%;
+    --chart-5: 220 15% 50%;
+    --sidebar: 0 0% 100%;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --shadow-2xs: 0 1px 2px 0px hsl(222 25% 15% / 0.03);
+    --shadow-xs: 0 1px 3px 0px hsl(222 25% 15% / 0.04);
+    --shadow: 0 1px 3px 0px hsl(222 25% 15% / 0.06), 0 1px 2px -1px hsl(222 25% 15% / 0.06);
+    --shadow-2xl: 0 24px 48px -12px hsl(222 25% 15% / 0.15);
+    --tracking-normal: -0.01em;
+    --spacing: 0.25rem;
+  }
+
+  .dark {
+    /* LeetRank Design System - Dark Mode */
+    /* Code-editor inspired dark with orange/violet accents */
+    --background: 224 25% 8%;
+    --foreground: 220 15% 95%;
+
+    --card: 224 22% 11%;
+    --card-foreground: 220 15% 95%;
+
+    --popover: 224 20% 14%;
+    --popover-foreground: 220 15% 95%;
+
+    /* Bright orange for dark mode */
+    --primary: 28 100% 55%;
+    --primary-foreground: 224 25% 8%;
+
+    /* Lighter violet for dark mode */
+    --secondary: 265 60% 58%;
+    --secondary-foreground: 224 25% 8%;
+
+    --muted: 224 15% 20%;
+    --muted-foreground: 220 12% 65%;
+
+    /* Code-accent for dark */
+    --accent: 224 20% 15%;
+    --accent-foreground: 28 100% 60%;
+
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 85% 97%;
+
+    --border: 224 18% 18%;
+    --input: 224 18% 18%;
+    --ring: 28 100% 55%;
+
+    /* Dark mode custom colors */
+    --leetrank-gold: 45 100% 55%;
+    --leetrank-silver: 220 10% 65%;
+    --leetrank-bronze: 30 55% 50%;
+
+    --difficulty-easy: 152 65% 48%;
+    --difficulty-medium: 38 100% 55%;
+    --difficulty-hard: 0 78% 58%;
+
+    --success: 152 65% 48%;
+    --warning: 38 100% 55%;
+
+    --terminal: 160 60% 50%;
+
+    /* Dark gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(28, 100%, 55%) 0%, hsl(265, 60%, 55%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(224, 25%, 8%) 0%, hsl(224, 22%, 11%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(224, 22%, 13%) 0%, hsl(224, 25%, 9%) 100%);
+    --gradient-code: linear-gradient(145deg, hsl(224, 28%, 6%) 0%, hsl(262, 25%, 12%) 100%);
+
+    /* Dark shadows */
+    --shadow-sm: 0 1px 2px 0px hsl(224 30% 3% / 0.3);
+    --shadow-md: 0 4px 8px -2px hsl(224 30% 3% / 0.4);
+    --shadow-lg: 0 8px 20px -4px hsl(224 30% 3% / 0.5);
+    --shadow-xl: 0 16px 36px -8px hsl(224 30% 3% / 0.6);
+    --shadow-glow: 0 0 50px -8px hsl(28, 100%, 55%, 0.4);
+    --shadow-violet: 0 8px 24px -6px hsl(265 60% 55% / 0.25);
+
+    --sidebar-background: 224 22% 11%;
+    --sidebar-foreground: 220 15% 95%;
+    --sidebar-primary: 28 100% 55%;
+    --sidebar-primary-foreground: 224 25% 8%;
+    --sidebar-accent: 265 60% 58%;
+    --sidebar-accent-foreground: 224 25% 8%;
+    --sidebar-border: 224 18% 18%;
+    --sidebar-ring: 28 100% 55%;
+    --chart-1: 28 100% 55%;
+    --chart-2: 38 100% 58%;
+    --chart-3: 265 60% 58%;
+    --chart-4: 152 65% 50%;
+    --chart-5: 220 12% 50%;
+    --sidebar: 224 22% 11%;
+    --shadow-2xs: 0 1px 2px 0px hsl(224 30% 3% / 0.2);
+    --shadow-xs: 0 1px 3px 0px hsl(224 30% 3% / 0.25);
+    --shadow: 0 1px 3px 0px hsl(224 30% 3% / 0.3), 0 1px 2px -1px hsl(224 30% 3% / 0.3);
+    --shadow-2xl: 0 24px 48px -12px hsl(224 30% 3% / 0.7);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* Code/mono text styling */
+  code, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .bg-gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+
+  .bg-gradient-card {
+    background-image: var(--gradient-card);
+  }
+
+  .bg-gradient-code {
+    background-image: var(--gradient-code);
+  }
+
+  /* Code editor grid pattern */
+  .pattern-grid {
+    background-image: 
+      linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Terminal-style line numbers pattern */
+  .pattern-lines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 31px,
+      hsl(var(--border) / 0.3) 31px,
+      hsl(var(--border) / 0.3) 32px
+    );
+  }
+
+  /* Code block styling */
+  .code-block {
+    @apply font-mono text-sm bg-gradient-code text-foreground rounded-lg p-4 border border-border/50;
+  }
+
+  /* Terminal prompt styling */
+  .terminal-prompt::before {
+    content: '>';
+    @apply text-primary mr-2 font-mono font-bold;
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-violet {
+    box-shadow: var(--shadow-violet);
+  }
+
+  /* Rank badge glow effects */
+  .glow-gold {
+    box-shadow: 0 0 20px -4px hsl(var(--leetrank-gold) / 0.5);
+  }
+  .glow-silver {
+    box-shadow: 0 0 20px -4px hsl(var(--leetrank-silver) / 0.5);
+  }
+  .glow-bronze {
+    box-shadow: 0 0 20px -4px hsl(var(--leetrank-bronze) / 0.5);
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Typing cursor animation */
+  .animate-cursor {
+    animation: cursor 1s step-end infinite;
+  }
+
+  /* Stagger animation delays */
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+  .stagger-5 { animation-delay: 0.25s; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-primary/20 text-foreground;
+}

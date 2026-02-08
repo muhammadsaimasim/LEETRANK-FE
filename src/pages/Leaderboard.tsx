@@ -1,0 +1,423 @@
+import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { Search, Filter, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { RankBadge } from '@/components/leaderboard/RankBadge';
+import { DifficultyBadge } from '@/components/common/DifficultyBadge';
+import { Avatar } from '@/components/common/Avatar';
+import { PageLoader } from '@/components/common/Loader';
+import { BATCHES, DEPARTMENTS, SORT_OPTIONS, ROUTES } from '@/lib/constants';
+import type { LeaderboardEntry } from '@/types';
+
+// Mock data for demonstration
+const mockLeaderboardData: LeaderboardEntry[] = Array.from({ length: 50 }, (_, i) => ({
+  id: String(i + 1),
+  rank: i + 1,
+  name: [
+    'Alex Chen', 'Sarah Kim', 'Mike Johnson', 'Emma Wilson', 'James Lee',
+    'Olivia Brown', 'William Davis', 'Sophia Martinez', 'Liam Garcia', 'Ava Rodriguez',
+  ][i % 10],
+  leetcodeUsername: `coder_${i + 1}`,
+  leetcodeProfileURL: `https://leetcode.com/coder_${i + 1}`,
+  batch: BATCHES[i % BATCHES.length],
+  department: DEPARTMENTS[i % DEPARTMENTS.length],
+  stats: {
+    totalSolved: Math.floor(Math.random() * 500) + 100,
+    easySolved: Math.floor(Math.random() * 200) + 50,
+    mediumSolved: Math.floor(Math.random() * 200) + 30,
+    hardSolved: Math.floor(Math.random() * 100) + 10,
+    ranking: Math.floor(Math.random() * 100000) + 1000,
+  },
+})).sort((a, b) => b.stats.totalSolved - a.stats.totalSolved)
+  .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+export default function Leaderboard() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [batchFilter, setBatchFilter] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState('totalSolved');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    // Simulate API loading
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const filteredData = useMemo(() => {
+    let data = [...mockLeaderboardData];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      data = data.filter(
+        (entry) =>
+          entry.name.toLowerCase().includes(query) ||
+          entry.leetcodeUsername.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply batch filter
+    if (batchFilter && batchFilter !== 'all') {
+      data = data.filter((entry) => entry.batch === batchFilter);
+    }
+
+    // Apply department filter
+    if (departmentFilter && departmentFilter !== 'all') {
+      data = data.filter((entry) => entry.department === departmentFilter);
+    }
+
+    // Apply sorting
+    data.sort((a, b) => {
+      switch (sortBy) {
+        case 'easySolved':
+          return b.stats.easySolved - a.stats.easySolved;
+        case 'mediumSolved':
+          return b.stats.mediumSolved - a.stats.mediumSolved;
+        case 'hardSolved':
+          return b.stats.hardSolved - a.stats.hardSolved;
+        case 'ranking':
+          return a.stats.ranking - b.stats.ranking;
+        default:
+          return b.stats.totalSolved - a.stats.totalSolved;
+      }
+    });
+
+    // Recalculate ranks
+    return data.map((entry, index) => ({ ...entry, rank: index + 1 }));
+  }, [searchQuery, batchFilter, departmentFilter, sortBy]);
+
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredData.slice(start, start + itemsPerPage);
+  }, [filteredData, currentPage]);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setBatchFilter('all');
+    setDepartmentFilter('all');
+    setSortBy('totalSolved');
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || batchFilter !== 'all' || departmentFilter !== 'all';
+
+  if (isLoading) {
+    return <PageLoader message="Loading leaderboard..." />;
+  }
+
+  return (
+    <div className="container py-8 animate-fade-in">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Leaderboard</h1>
+        <p className="mt-2 text-muted-foreground">
+          See where you stand among {filteredData.length} students
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or username..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Filter toggle for mobile */}
+          <Button
+            variant="outline"
+            className="sm:hidden"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+            {hasActiveFilters && (
+              <span className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                {[searchQuery, batchFilter !== 'all', departmentFilter !== 'all'].filter(Boolean).length}
+              </span>
+            )}
+          </Button>
+
+          {/* Desktop filters */}
+          <div className="hidden sm:flex gap-3">
+            <Select value={batchFilter} onValueChange={(v) => { setBatchFilter(v); setCurrentPage(1); }}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Batch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Batches</SelectItem>
+                {BATCHES.map((batch) => (
+                  <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={departmentFilter} onValueChange={(v) => { setDepartmentFilter(v); setCurrentPage(1); }}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {DEPARTMENTS.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button variant="ghost" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile filters dropdown */}
+        {showFilters && (
+          <div className="sm:hidden grid grid-cols-2 gap-3 p-4 border rounded-lg bg-card animate-slide-down">
+            <Select value={batchFilter} onValueChange={(v) => { setBatchFilter(v); setCurrentPage(1); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Batch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Batches</SelectItem>
+                {BATCHES.map((batch) => (
+                  <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={departmentFilter} onValueChange={(v) => { setDepartmentFilter(v); setCurrentPage(1); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {DEPARTMENTS.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="col-span-2">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={clearFilters} className="col-span-2">
+                Clear all filters
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block rounded-xl border bg-card overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-muted/50">
+            <tr>
+              <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Rank</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">User</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Batch</th>
+              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Total</th>
+              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Easy</th>
+              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Medium</th>
+              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Hard</th>
+              <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {paginatedData.map((entry) => (
+              <tr key={entry.id} className="transition-colors hover:bg-muted/30">
+                <td className="px-6 py-4">
+                  <RankBadge position={entry.rank} />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar name={entry.name} size="sm" />
+                    <div>
+                      <div className="font-medium">{entry.name}</div>
+                      <a
+                        href={entry.leetcodeProfileURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1"
+                      >
+                        @{entry.leetcodeUsername}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm">{entry.batch}</div>
+                  <div className="text-xs text-muted-foreground">{entry.department}</div>
+                </td>
+                <td className="px-6 py-4 text-center font-semibold">{entry.stats.totalSolved}</td>
+                <td className="px-6 py-4 text-center">
+                  <DifficultyBadge difficulty="easy" count={entry.stats.easySolved} showLabel={false} />
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <DifficultyBadge difficulty="medium" count={entry.stats.mediumSolved} showLabel={false} />
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <DifficultyBadge difficulty="hard" count={entry.stats.hardSolved} showLabel={false} />
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to={`${ROUTES.PROFILE}/${entry.id}`}>View</Link>
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {paginatedData.map((entry) => (
+          <div
+            key={entry.id}
+            className="rounded-xl border bg-card p-4 transition-all hover:shadow-md"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Avatar name={entry.name} size="lg" />
+                <div>
+                  <div className="font-semibold">{entry.name}</div>
+                  <a
+                    href={entry.leetcodeProfileURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1"
+                  >
+                    @{entry.leetcodeUsername}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              </div>
+              <RankBadge position={entry.rank} size="lg" />
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+              <span>{entry.batch}</span>
+              <span>•</span>
+              <span>{entry.department}</span>
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="flex gap-2">
+                <DifficultyBadge difficulty="easy" count={entry.stats.easySolved} showLabel={false} />
+                <DifficultyBadge difficulty="medium" count={entry.stats.mediumSolved} showLabel={false} />
+                <DifficultyBadge difficulty="hard" count={entry.stats.hardSolved} showLabel={false} />
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">{entry.stats.totalSolved}</div>
+                <div className="text-xs text-muted-foreground">problems</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let page: number;
+              if (totalPages <= 5) {
+                page = i + 1;
+              } else if (currentPage <= 3) {
+                page = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                page = totalPages - 4 + i;
+              } else {
+                page = currentPage - 2 + i;
+              }
+              return (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? 'default' : 'outline'}
+                  size="icon"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Button>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {filteredData.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-muted-foreground">No results found</p>
+          <Button variant="link" onClick={clearFilters}>
+            Clear filters
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}

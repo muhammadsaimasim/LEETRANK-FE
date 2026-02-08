@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { authApi, userApi } from '@/services/api';
+import { authApi } from '@/api/auth.api.js';
+import { userApi } from '@/api/user.api.js';
 import type { User } from '@/types';
 import { toast } from 'sonner';
 
@@ -9,6 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithToken: (token: string, user: User) => void;
   register: (data: {
     name: string;
     email: string;
@@ -59,12 +61,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     verifyToken();
   }, [verifyToken]);
 
+  const syncStatsInBackground = useCallback(async () => {
+    try {
+      await userApi.syncStats();
+      const userData = await userApi.getProfile();
+      setUser(userData);
+    } catch (error) {
+      // Silent fail - stats will be synced next time
+    }
+  }, []);
+
   const login = async (email: string, password: string) => {
     const response = await authApi.login(email, password);
     localStorage.setItem('token', response.token);
     setToken(response.token);
     setUser(response.user);
     toast.success('Welcome back!');
+    // Sync stats in background after login
+    syncStatsInBackground();
+  };
+
+  const loginWithToken = (newToken: string, newUser: User) => {
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+    setUser(newUser);
+    // Sync stats in background after OTP signup
+    syncStatsInBackground();
   };
 
   const register = async (data: {
@@ -104,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithToken,
         register,
         logout,
         updateUser,

@@ -14,6 +14,9 @@ import Landing from "@/pages/Landing";
 import Leaderboard from "@/pages/Leaderboard";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import VerifyOTP from "@/pages/VerifyOTP";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
 import UserProfile from "@/pages/UserProfile";
@@ -51,6 +54,30 @@ const App = () => (
                   element={
                     <PublicOnlyRoute>
                       <Register />
+                    </PublicOnlyRoute>
+                  }
+                />
+                <Route
+                  path="/verify-otp"
+                  element={
+                    <PublicOnlyRoute>
+                      <VerifyOTP />
+                    </PublicOnlyRoute>
+                  }
+                />
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <PublicOnlyRoute>
+                      <ForgotPassword />
+                    </PublicOnlyRoute>
+                  }
+                />
+                <Route
+                  path="/reset-password"
+                  element={
+                    <PublicOnlyRoute>
+                      <ResetPassword />
                     </PublicOnlyRoute>
                   }
                 />

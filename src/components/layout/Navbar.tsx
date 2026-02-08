@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut, Settings, LayoutDashboard, Shield, ChevronDown, Code2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
+import { Avatar } from '@/components/common/Avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -35,7 +36,7 @@ export function Navbar() {
       <div className="container">
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
-          <Link to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.HOME} className="flex items-center gap-2.5 group">
+          <Link to={ROUTES.HOME} className="flex items-center gap-2.5 group">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
               <Code2 className="h-4 w-4 text-primary-foreground" />
             </div>
@@ -71,11 +72,12 @@ export function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2 h-9 pl-2 pr-2.5">
-                      <div className="h-6 w-6 rounded-md bg-primary/15 flex items-center justify-center">
-                        <span className="text-xs font-semibold text-primary">
-                          {user?.name?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      <Avatar
+                        name={user?.name || 'U'}
+                        src={user?.stats?.avatar}
+                        size="sm"
+                        className="h-6 w-6"
+                      />
                       <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>

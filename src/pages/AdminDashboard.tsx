@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, RefreshCw, ChevronLeft, ChevronRight, Users, Target, TrendingUp, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,89 +30,84 @@ import {
 } from '@/components/ui/alert-dialog';
 import { StatsCard } from '@/components/common/StatsCard';
 import { Avatar } from '@/components/common/Avatar';
-import { Loader } from '@/components/common/Loader';
+import { Loader, PageLoader } from '@/components/common/Loader';
+import { userApi } from '@/api/user.api.js';
+import { leaderboardApi } from '@/api/leaderboard.api.js';
 import { BATCHES, DEPARTMENTS, ROLES } from '@/lib/constants';
 import { toast } from 'sonner';
 import type { User } from '@/types';
 
-// Mock users for demonstration
-const mockUsers: User[] = Array.from({ length: 50 }, (_, i) => ({
-  id: String(i + 1),
-  name: ['Alex Chen', 'Sarah Kim', 'Mike Johnson', 'Emma Wilson', 'James Lee'][i % 5],
-  email: `user${i + 1}@university.edu`,
-  role: i === 0 ? 'admin' : i < 5 ? 'moderator' : 'student',
-  leetcodeUsername: `coder_${i + 1}`,
-  leetcodeProfileURL: `https://leetcode.com/coder_${i + 1}`,
-  batch: BATCHES[i % BATCHES.length],
-  department: DEPARTMENTS[i % DEPARTMENTS.length],
-  stats: {
-    totalSolved: Math.floor(Math.random() * 500) + 100,
-    easySolved: Math.floor(Math.random() * 200) + 50,
-    mediumSolved: Math.floor(Math.random() * 200) + 30,
-    hardSolved: Math.floor(Math.random() * 100) + 10,
-    ranking: Math.floor(Math.random() * 100000) + 1000,
-  },
-}));
-
 export default function AdminDashboard() {
-  const [users] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [overviewStats, setOverviewStats] = useState({ totalUsers: 0, totalSolved: 0, averageSolved: 0, topPerformer: { name: '-', totalSolved: 0 } });
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [batchFilter, setBatchFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const itemsPerPage = 10;
 
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const params: Record<string, any> = { page: currentPage, limit: itemsPerPage };
+      if (roleFilter && roleFilter !== 'all') params.role = roleFilter;
+      if (batchFilter && batchFilter !== 'all') params.batch = batchFilter;
+      const res = await userApi.getAllUsers(params);
+      setUsers(res.data);
+      setTotalPages(res.totalPages);
+    } catch (error) {
+      toast.error(error.message || 'Failed to fetch users');
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const stats = await leaderboardApi.getStats();
+      setOverviewStats({
+        totalUsers: stats.totalUsers,
+        totalSolved: stats.totalProblemsSolved,
+        averageSolved: stats.averageProblems,
+        topPerformer: stats.topPerformer || { name: '-', totalSolved: 0 },
+      });
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, roleFilter, batchFilter]);
+
   const filteredUsers = useMemo(() => {
-    let data = [...users];
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      data = data.filter(
-        (user) =>
-          user.name.toLowerCase().includes(query) ||
-          user.email.toLowerCase().includes(query)
-      );
-    }
-
-    if (roleFilter && roleFilter !== 'all') {
-      data = data.filter((user) => user.role === roleFilter);
-    }
-
-    if (batchFilter && batchFilter !== 'all') {
-      data = data.filter((user) => user.batch === batchFilter);
-    }
-
-    return data;
-  }, [users, searchQuery, roleFilter, batchFilter]);
-
-  const paginatedUsers = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredUsers.slice(start, start + itemsPerPage);
-  }, [filteredUsers, currentPage]);
-
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-
-  const stats = useMemo(() => {
-    const totalSolved = users.reduce((acc, user) => acc + (user.stats?.totalSolved || 0), 0);
-    const topPerformer = users.reduce((max, user) =>
-      (user.stats?.totalSolved || 0) > (max.stats?.totalSolved || 0) ? user : max
+    if (!searchQuery) return users;
+    const query = searchQuery.toLowerCase();
+    return users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
     );
-    return {
-      totalUsers: users.length,
-      totalSolved,
-      averageSolved: Math.round(totalSolved / users.length),
-      topPerformer,
-    };
-  }, [users]);
+  }, [users, searchQuery]);
+
+  const paginatedUsers = filteredUsers;
 
   const handleSyncAll = async () => {
     setIsSyncing(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await leaderboardApi.updateAllStats();
       toast.success('All user stats synced successfully!');
+      fetchUsers();
+      fetchStats();
     } catch (error) {
-      toast.error('Failed to sync stats');
+      toast.error(error.message || 'Failed to sync stats');
     } finally {
       setIsSyncing(false);
     }
@@ -120,19 +115,22 @@ export default function AdminDashboard() {
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await userApi.updateUserRole(userId, newRole);
       toast.success(`Role updated to ${newRole}`);
+      fetchUsers();
     } catch (error) {
-      toast.error('Failed to update role');
+      toast.error(error.message || 'Failed to update role');
     }
   };
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await userApi.deleteUser(userId);
       toast.success('User deleted successfully');
+      fetchUsers();
+      fetchStats();
     } catch (error) {
-      toast.error('Failed to delete user');
+      toast.error(error.message || 'Failed to delete user');
     }
   };
 
@@ -157,23 +155,23 @@ export default function AdminDashboard() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatsCard
           title="Total Users"
-          value={stats.totalUsers}
+          value={overviewStats.totalUsers}
           icon={<Users className="h-5 w-5" />}
         />
         <StatsCard
           title="Total Problems Solved"
-          value={stats.totalSolved.toLocaleString()}
+          value={overviewStats.totalSolved.toLocaleString()}
           icon={<Target className="h-5 w-5" />}
         />
         <StatsCard
           title="Average Per User"
-          value={stats.averageSolved}
+          value={overviewStats.averageSolved}
           icon={<TrendingUp className="h-5 w-5" />}
         />
         <StatsCard
           title="Top Performer"
-          value={stats.topPerformer.name}
-          subtitle={`${stats.topPerformer.stats?.totalSolved} problems`}
+          value={overviewStats.topPerformer.name}
+          subtitle={`${overviewStats.topPerformer.totalSolved} problems`}
           icon={<Crown className="h-5 w-5" />}
         />
       </div>
@@ -234,7 +232,7 @@ export default function AdminDashboard() {
               <TableRow key={user.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Avatar name={user.name} size="sm" />
+                    <Avatar name={user.name} src={user.stats?.avatar} size="sm" />
                     <div>
                       <div className="font-medium">{user.name}</div>
                       <div className="text-sm text-muted-foreground">{user.email}</div>
@@ -295,8 +293,7 @@ export default function AdminDashboard() {
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-            {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
+            Page {currentPage} of {totalPages}
           </p>
           <div className="flex items-center gap-2">
             <Button

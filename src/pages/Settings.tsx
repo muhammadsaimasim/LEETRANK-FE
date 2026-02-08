@@ -38,6 +38,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/context/AuthContext';
+import { userApi } from '@/api/user.api.js';
+import { authApi } from '@/api/auth.api.js';
 import {
   profileUpdateSchema,
   leetcodeUpdateSchema,
@@ -101,36 +103,35 @@ export default function Settings() {
 
   const handleProfileUpdate = async (data: ProfileUpdateFormData) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (user) {
-        updateUser({ ...user, ...data });
+      const updatedUser = await userApi.updateProfile(data);
+      if (updatedUser) {
+        updateUser({ ...user, ...updatedUser });
       }
       toast.success('Profile updated successfully');
-    } catch (error) {
-      toast.error('Failed to update profile');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update profile');
     }
   };
 
   const handleLeetcodeUpdate = async (data: LeetcodeUpdateFormData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (user) {
-        updateUser({ ...user, ...data });
+      const updatedUser = await userApi.updateLeetcode(data);
+      if (updatedUser && user) {
+        updateUser({ ...user, ...updatedUser });
       }
       toast.success('LeetCode info updated successfully');
-    } catch (error) {
-      toast.error('Failed to update LeetCode info');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update LeetCode info');
     }
   };
 
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await userApi.syncStats();
       toast.success('Stats synced successfully!');
-    } catch (error) {
-      toast.error('Failed to sync stats');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sync stats');
     } finally {
       setIsSyncing(false);
     }
@@ -138,22 +139,22 @@ export default function Settings() {
 
   const handlePasswordChange = async (data: PasswordChangeFormData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await authApi.changePassword(data.currentPassword, data.newPassword);
       toast.success('Password changed successfully');
       passwordForm.reset();
-    } catch (error) {
-      toast.error('Failed to change password');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to change password');
     }
   };
 
   const handleDeleteAccount = async (data: DeleteAccountFormData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await userApi.deleteAccount(data.password);
       toast.success('Account deleted');
       logout();
       navigate(ROUTES.HOME);
-    } catch (error) {
-      toast.error('Failed to delete account');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete account');
     }
   };
 

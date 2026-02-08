@@ -14,32 +14,12 @@ import { RankBadge } from '@/components/leaderboard/RankBadge';
 import { DifficultyBadge } from '@/components/common/DifficultyBadge';
 import { Avatar } from '@/components/common/Avatar';
 import { PageLoader } from '@/components/common/Loader';
+import { leaderboardApi } from '@/api/leaderboard.api.js';
 import { BATCHES, DEPARTMENTS, SORT_OPTIONS, ROUTES } from '@/lib/constants';
 import type { LeaderboardEntry } from '@/types';
 
-// Mock data for demonstration
-const mockLeaderboardData: LeaderboardEntry[] = Array.from({ length: 50 }, (_, i) => ({
-  id: String(i + 1),
-  rank: i + 1,
-  name: [
-    'Alex Chen', 'Sarah Kim', 'Mike Johnson', 'Emma Wilson', 'James Lee',
-    'Olivia Brown', 'William Davis', 'Sophia Martinez', 'Liam Garcia', 'Ava Rodriguez',
-  ][i % 10],
-  leetcodeUsername: `coder_${i + 1}`,
-  leetcodeProfileURL: `https://leetcode.com/coder_${i + 1}`,
-  batch: BATCHES[i % BATCHES.length],
-  department: DEPARTMENTS[i % DEPARTMENTS.length],
-  stats: {
-    totalSolved: Math.floor(Math.random() * 500) + 100,
-    easySolved: Math.floor(Math.random() * 200) + 50,
-    mediumSolved: Math.floor(Math.random() * 200) + 30,
-    hardSolved: Math.floor(Math.random() * 100) + 10,
-    ranking: Math.floor(Math.random() * 100000) + 1000,
-  },
-})).sort((a, b) => b.stats.totalSolved - a.stats.totalSolved)
-  .map((entry, index) => ({ ...entry, rank: index + 1 }));
-
 export default function Leaderboard() {
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [batchFilter, setBatchFilter] = useState<string>('all');
@@ -50,15 +30,28 @@ export default function Leaderboard() {
   const itemsPerPage = 20;
 
   useEffect(() => {
-    // Simulate API loading
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchLeaderboard = async () => {
+      setIsLoading(true);
+      try {
+        const filters: Record<string, string> = {};
+        if (batchFilter && batchFilter !== 'all') filters.batch = batchFilter;
+        if (departmentFilter && departmentFilter !== 'all') filters.department = departmentFilter;
+        if (sortBy) filters.sortBy = sortBy;
+        const data = await leaderboardApi.getLeaderboard(filters);
+        setLeaderboardData(data);
+      } catch (error) {
+        console.error('Failed to fetch leaderboard:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, [batchFilter, departmentFilter, sortBy]);
 
   const filteredData = useMemo(() => {
-    let data = [...mockLeaderboardData];
+    let data = [...leaderboardData];
 
-    // Apply search filter
+    // Apply search filter (client-side)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       data = data.filter(
@@ -68,35 +61,9 @@ export default function Leaderboard() {
       );
     }
 
-    // Apply batch filter
-    if (batchFilter && batchFilter !== 'all') {
-      data = data.filter((entry) => entry.batch === batchFilter);
-    }
-
-    // Apply department filter
-    if (departmentFilter && departmentFilter !== 'all') {
-      data = data.filter((entry) => entry.department === departmentFilter);
-    }
-
-    // Apply sorting
-    data.sort((a, b) => {
-      switch (sortBy) {
-        case 'easySolved':
-          return b.stats.easySolved - a.stats.easySolved;
-        case 'mediumSolved':
-          return b.stats.mediumSolved - a.stats.mediumSolved;
-        case 'hardSolved':
-          return b.stats.hardSolved - a.stats.hardSolved;
-        case 'ranking':
-          return a.stats.ranking - b.stats.ranking;
-        default:
-          return b.stats.totalSolved - a.stats.totalSolved;
-      }
-    });
-
     // Recalculate ranks
     return data.map((entry, index) => ({ ...entry, rank: index + 1 }));
-  }, [searchQuery, batchFilter, departmentFilter, sortBy]);
+  }, [leaderboardData, searchQuery]);
 
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -276,7 +243,7 @@ export default function Leaderboard() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <Avatar name={entry.name} size="sm" />
+                    <Avatar name={entry.name} src={entry.stats.avatar} size="sm" />
                     <div>
                       <div className="font-medium">{entry.name}</div>
                       <a
@@ -325,7 +292,7 @@ export default function Leaderboard() {
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Avatar name={entry.name} size="lg" />
+                <Avatar name={entry.name} src={entry.stats.avatar} size="lg" />
                 <div>
                   <div className="font-semibold">{entry.name}</div>
                   <a

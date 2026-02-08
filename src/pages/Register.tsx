@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useAuth } from '@/context/AuthContext';
+import { authApi } from '@/api/auth.api.js';
 import { registerSchema, type RegisterFormData } from '@/lib/validation';
 import { ROUTES, BATCHES, DEPARTMENTS } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils';
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { register: registerUser } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -52,7 +51,7 @@ export default function Register() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      await registerUser({
+      await authApi.sendSignupOTP({
         name: data.name,
         email: data.email,
         password: data.password,
@@ -61,9 +60,12 @@ export default function Register() {
         batch: data.batch,
         department: data.department,
       });
-      navigate(ROUTES.DASHBOARD);
+      toast.success('OTP sent to your email!');
+      navigate(ROUTES.VERIFY_OTP, {
+        state: { email: data.email, type: 'signup' },
+      });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create account');
+      toast.error(error.message || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }

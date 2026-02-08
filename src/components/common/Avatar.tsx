@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AvatarProps {
   name: string;
+  src?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
-export function Avatar({ name, size = 'md', className }: AvatarProps) {
+export function Avatar({ name, src, size = 'md', className }: AvatarProps) {
+  const [imgError, setImgError] = useState(false);
+
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length >= 2) {
@@ -38,11 +42,28 @@ export function Avatar({ name, size = 'md', className }: AvatarProps) {
     return colors[hash % colors.length];
   };
 
+  const sizeClass = sizes[size];
+
+  if (src && !imgError) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        onError={() => setImgError(true)}
+        className={cn(
+          'inline-block rounded-full object-cover',
+          sizeClass,
+          className
+        )}
+      />
+    );
+  }
+
   return (
     <div
       className={cn(
         'inline-flex items-center justify-center rounded-full font-semibold text-white',
-        sizes[size],
+        sizeClass,
         getColor(name),
         className
       )}

@@ -18,6 +18,7 @@ export interface UserStats {
   mediumSolved: number;
   hardSolved: number;
   ranking: number;
+  avatar?: string;
   lastSynced?: string;
 }
 

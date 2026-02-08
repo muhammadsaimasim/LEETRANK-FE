@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { RefreshCw, ExternalLink, TrendingUp, Target, Award, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { userApi } from '@/api/user.api.js';
 import { StatsCard } from '@/components/common/StatsCard';
 import { ProgressBar } from '@/components/common/ProgressBar';
-import { RankBadge } from '@/components/leaderboard/RankBadge';
+import { Avatar } from '@/components/common/Avatar';
 import { Loader } from '@/components/common/Loader';
 import { ROUTES } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -14,25 +15,23 @@ export default function Dashboard() {
   const { user, refreshUser } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Mock stats for demonstration
   const stats = user?.stats || {
-    totalSolved: 245,
-    easySolved: 120,
-    mediumSolved: 95,
-    hardSolved: 30,
-    ranking: 15234,
-    lastSynced: new Date().toISOString(),
+    totalSolved: 0,
+    easySolved: 0,
+    mediumSolved: 0,
+    hardSolved: 0,
+    ranking: 0,
+    lastSynced: null,
   };
 
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await userApi.syncStats();
       await refreshUser();
       toast.success('Stats synced successfully!');
     } catch (error) {
-      toast.error('Failed to sync stats');
+      toast.error(error.message || 'Failed to sync stats');
     } finally {
       setIsSyncing(false);
     }
@@ -52,9 +51,16 @@ export default function Dashboard() {
     <div className="container py-8 animate-fade-in">
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome back, {user?.name?.split(' ')[0]}! 👋</h1>
-          <p className="text-muted-foreground mt-1">Here's your coding progress overview</p>
+        <div className="flex items-center gap-4">
+          <Avatar
+            name={user?.name || 'User'}
+            src={user?.stats?.avatar}
+            size="xl"
+          />
+          <div>
+            <h1 className="text-3xl font-bold">{user?.name}</h1>
+            <p className="text-muted-foreground mt-0.5">@{user?.leetcodeUsername || 'username'}</p>
+          </div>
         </div>
         <Button onClick={handleSync} disabled={isSyncing}>
           {isSyncing ? (
@@ -70,8 +76,8 @@ export default function Dashboard() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatsCard
           title="Your Rank"
-          value={`#${42}`}
-          subtitle="Top 15%"
+          value={stats.ranking ? `#${stats.ranking.toLocaleString()}` : 'N/A'}
+          subtitle="LeetCode Global"
           icon={<Award className="h-5 w-5" />}
         />
         <StatsCard
@@ -82,16 +88,15 @@ export default function Dashboard() {
         />
         <StatsCard
           title="LeetCode Ranking"
-          value={stats.ranking.toLocaleString()}
+          value={stats.ranking ? stats.ranking.toLocaleString() : 'N/A'}
           subtitle="Global"
           icon={<TrendingUp className="h-5 w-5" />}
         />
         <StatsCard
-          title="This Month"
-          value="+23"
-          subtitle="Problems solved"
+          title="Hard Solved"
+          value={stats.hardSolved}
+          subtitle="Keep pushing!"
           icon={<BarChart3 className="h-5 w-5" />}
-          trend={{ value: 15, isPositive: true }}
         />
       </div>
 

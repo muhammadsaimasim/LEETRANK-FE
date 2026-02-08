@@ -31,9 +31,9 @@ export default function Login() {
     try {
       await login(data.email, data.password);
       toast.success('Welcome back!');
-      navigate(ROUTES.DASHBOARD);
+      navigate(ROUTES.LEADERBOARD);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }

@@ -7,29 +7,9 @@ import { ProgressBar } from '@/components/common/ProgressBar';
 import { RankBadge } from '@/components/leaderboard/RankBadge';
 import { PageLoader } from '@/components/common/Loader';
 import { useAuth } from '@/context/AuthContext';
+import { userApi } from '@/api/user.api.js';
 import { ROUTES } from '@/lib/constants';
 import type { User } from '@/types';
-
-// Mock user data for demonstration
-const mockUserData: User = {
-  id: '1',
-  name: 'Alex Chen',
-  email: 'alex@university.edu',
-  role: 'student',
-  leetcodeUsername: 'alex_chen',
-  leetcodeProfileURL: 'https://leetcode.com/alex_chen',
-  batch: '2024',
-  department: 'Computer Science',
-  stats: {
-    totalSolved: 324,
-    easySolved: 156,
-    mediumSolved: 132,
-    hardSolved: 36,
-    ranking: 12453,
-    lastSynced: new Date().toISOString(),
-  },
-  createdAt: '2024-01-15T10:00:00Z',
-};
 
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>();
@@ -40,12 +20,19 @@ export default function UserProfile() {
   const isOwnProfile = currentUser?.id === id;
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setUser(mockUserData);
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const fetchUser = async () => {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const userData = await userApi.getUserById(id);
+        setUser(userData);
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
   }, [id]);
 
   if (isLoading) {
@@ -86,11 +73,11 @@ export default function UserProfile() {
       {/* Profile Header */}
       <div className="rounded-xl border bg-card p-6 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-          <Avatar name={user.name} size="xl" />
+          <Avatar name={user.name} src={user.stats?.avatar} size="xl" />
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
               <h1 className="text-2xl font-bold">{user.name}</h1>
-              <RankBadge position={42} size="lg" />
+              <RankBadge position={stats.ranking || 0} size="lg" />
             </div>
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">

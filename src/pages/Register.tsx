@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Trophy, Loader2, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Trophy, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,9 +15,8 @@ import {
 } from '@/components/ui/select';
 import { authApi } from '@/api/auth.api.js';
 import { registerSchema, type RegisterFormData } from '@/lib/validation';
-import { ROUTES, BATCHES, DEPARTMENTS } from '@/lib/constants';
+import { ROUTES, BATCHES } from '@/lib/constants';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,25 +27,13 @@ export default function Register() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       batch: '',
-      department: '',
     },
   });
-
-  const password = watch('password', '');
-
-  const passwordRequirements = [
-    { label: 'At least 8 characters', met: password.length >= 8 },
-    { label: 'One uppercase letter', met: /[A-Z]/.test(password) },
-    { label: 'One lowercase letter', met: /[a-z]/.test(password) },
-    { label: 'One number', met: /[0-9]/.test(password) },
-    { label: 'One special character', met: /[^A-Za-z0-9]/.test(password) },
-  ];
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
@@ -58,9 +45,8 @@ export default function Register() {
         leetcodeUsername: data.leetcodeUsername,
         leetcodeProfileURL: data.leetcodeProfileURL,
         batch: data.batch,
-        department: data.department,
       });
-      toast.success('OTP sent to your email!');
+      toast.success('OTP sent to your email! Please verify to complete registration.');
       navigate(ROUTES.VERIFY_OTP, {
         state: { email: data.email, type: 'signup' },
       });
@@ -136,22 +122,6 @@ export default function Register() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {password && (
-                <div className="mt-3 space-y-1.5">
-                  {passwordRequirements.map((req) => (
-                    <div
-                      key={req.label}
-                      className={cn(
-                        'flex items-center gap-2 text-xs',
-                        req.met ? 'text-success' : 'text-muted-foreground'
-                      )}
-                    >
-                      {req.met ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
-                      {req.label}
-                    </div>
-                  ))}
-                </div>
-              )}
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
@@ -186,38 +156,22 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Batch & Department */}
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Batch</Label>
-                <Select onValueChange={(value) => setValue('batch', value)}>
-                  <SelectTrigger className={errors.batch ? 'border-destructive' : ''}>
-                    <SelectValue placeholder="Select batch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BATCHES.map((batch) => (
-                      <SelectItem key={batch} value={batch}>{batch}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.batch && (
-                  <p className="text-sm text-destructive">{errors.batch.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Department (Optional)</Label>
-                <Select onValueChange={(value) => setValue('department', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEPARTMENTS.map((dept) => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Batch */}
+            <div className="space-y-2">
+              <Label>Batch</Label>
+              <Select onValueChange={(value) => setValue('batch', value)}>
+                <SelectTrigger className={errors.batch ? 'border-destructive' : ''}>
+                  <SelectValue placeholder="Select batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {BATCHES.map((batch) => (
+                    <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.batch && (
+                <p className="text-sm text-destructive">{errors.batch.message}</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>

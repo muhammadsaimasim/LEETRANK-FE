@@ -15,8 +15,8 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const resetToken: string = location.state?.resetToken || '';
   const email: string = location.state?.email || '';
+  const otpCode: string = location.state?.otp || '';
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -30,8 +30,8 @@ export default function ResetPassword() {
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  // Redirect if no reset token
-  if (!resetToken) {
+  // Redirect if no email or otp
+  if (!email || !otpCode) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
         <div className="text-center space-y-4">
@@ -48,7 +48,7 @@ export default function ResetPassword() {
   const onSubmit = async (data: ResetPasswordFormData) => {
     setIsLoading(true);
     try {
-      await authApi.resetPassword(resetToken, data.password);
+      await authApi.resetPassword(email, otpCode, data.newPassword);
       toast.success('Password reset successfully! Please log in.');
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (error: any) {
@@ -77,14 +77,14 @@ export default function ResetPassword() {
         <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-lg">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
+              <Label htmlFor="newPassword">New Password</Label>
               <div className="relative">
                 <Input
-                  id="password"
+                  id="newPassword"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter new password"
                   autoComplete="new-password"
-                  {...register('password')}
+                  {...register('newPassword')}
                 />
                 <button
                   type="button"
@@ -94,8 +94,8 @@ export default function ResetPassword() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+              {errors.newPassword && (
+                <p className="text-sm text-destructive">{errors.newPassword.message}</p>
               )}
             </div>
 

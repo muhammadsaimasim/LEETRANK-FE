@@ -50,7 +50,7 @@ import {
   type PasswordChangeFormData,
   type DeleteAccountFormData,
 } from '@/lib/validation';
-import { ROUTES, BATCHES, DEPARTMENTS } from '@/lib/constants';
+import { ROUTES, BATCHES } from '@/lib/constants';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -68,7 +68,6 @@ export default function Settings() {
     defaultValues: {
       name: user?.name || '',
       batch: user?.batch || '',
-      department: user?.department || '',
     },
   });
 
@@ -202,40 +201,21 @@ export default function Settings() {
                 )}
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Batch</Label>
-                  <Select
-                    defaultValue={user?.batch}
-                    onValueChange={(value) => profileForm.setValue('batch', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select batch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BATCHES.map((batch) => (
-                        <SelectItem key={batch} value={batch}>{batch}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Department</Label>
-                  <Select
-                    defaultValue={user?.department}
-                    onValueChange={(value) => profileForm.setValue('department', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DEPARTMENTS.map((dept) => (
-                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Batch</Label>
+                <Select
+                  defaultValue={user?.batch}
+                  onValueChange={(value) => profileForm.setValue('batch', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BATCHES.map((batch) => (
+                      <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button type="submit" disabled={profileForm.formState.isSubmitting}>

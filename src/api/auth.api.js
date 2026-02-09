@@ -93,16 +93,16 @@ export const authApi = {
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
 
-  // OTP endpoints
+  // OTP endpoints (all under /auth now)
   sendSignupOTP: (data) =>
-    request('/otp/send-signup-otp', {
+    request('/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }),
 
   verifySignupOTP: async (email, otp) => {
-    const res = await request('/otp/verify-signup-otp', {
+    const res = await request('/auth/signup-verification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, otp }),
@@ -111,25 +111,23 @@ export const authApi = {
   },
 
   sendForgotPasswordOTP: (email) =>
-    request('/otp/forgot-password', {
+    request('/auth/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     }),
 
-  verifyForgotPasswordOTP: async (email, otp) => {
-    const res = await request('/otp/verify-forgot-otp', {
+  resetPassword: (email, otp, newPassword) =>
+    request('/auth/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, otp }),
-    });
-    return { resetToken: res.resetToken };
-  },
+      body: JSON.stringify({ email, otp, newPassword }),
+    }),
 
-  resetPassword: (resetToken, newPassword) =>
-    request('/otp/reset-password', {
+  resendOTP: (email, type) =>
+    request('/auth/resend-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resetToken, newPassword }),
+      body: JSON.stringify({ email, type }),
     }),
 };

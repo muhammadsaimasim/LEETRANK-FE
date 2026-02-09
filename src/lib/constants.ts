@@ -2,17 +2,6 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
 
 export const BATCHES = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
 
-export const DEPARTMENTS = [
-  'Computer Science',
-  'Information Technology',
-  'Electronics',
-  'Electrical',
-  'Mechanical',
-  'Civil',
-  'Chemical',
-  'Other'
-];
-
 export const SORT_OPTIONS = [
   { value: 'totalSolved', label: 'Total Solved' },
   { value: 'easySolved', label: 'Easy Problems' },
@@ -23,7 +12,6 @@ export const SORT_OPTIONS = [
 
 export const ROLES = {
   STUDENT: 'student',
-  MODERATOR: 'moderator',
   ADMIN: 'admin',
 } as const;
 

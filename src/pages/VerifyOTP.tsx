@@ -76,11 +76,11 @@ export default function VerifyOTP() {
         toast.success('Account created successfully!');
         navigate(ROUTES.LEADERBOARD, { replace: true });
       } else {
-        const response = await authApi.verifyForgotPasswordOTP(email, otpString);
+        // For forgot-password: navigate to reset page with email and OTP
         toast.success('OTP verified! Set your new password.');
         navigate(ROUTES.RESET_PASSWORD, {
           replace: true,
-          state: { resetToken: response.resetToken, email },
+          state: { email, otp: otpString },
         });
       }
     } catch (error: any) {
@@ -93,21 +93,7 @@ export default function VerifyOTP() {
   const handleResend = async () => {
     setIsResending(true);
     try {
-      if (type === 'signup') {
-        // Re-send OTP via the resend endpoint
-        const response = await fetch(
-          `${(await import('@/Environment/env.js')).BASE_URL}/otp/resend`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, type: 'signup' }),
-          }
-        );
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.message || 'Failed to resend');
-      } else {
-        await authApi.sendForgotPasswordOTP(email);
-      }
+      await authApi.resendOTP(email, type);
       toast.success('A new OTP has been sent to your email');
       setCooldown(60);
       setOtp(['', '', '', '', '', '']);

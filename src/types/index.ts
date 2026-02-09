@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'moderator' | 'admin';
+  role: 'student' | 'admin';
   leetcodeUsername: string;
   leetcodeProfileURL: string;
   batch: string;
@@ -35,7 +35,6 @@ export interface LeaderboardEntry {
 
 export interface LeaderboardFilters {
   batch?: string;
-  department?: string;
   sortBy?: string;
   search?: string;
   limit?: number;

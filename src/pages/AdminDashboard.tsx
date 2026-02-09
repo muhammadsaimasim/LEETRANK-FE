@@ -33,7 +33,7 @@ import { Avatar } from '@/components/common/Avatar';
 import { Loader, PageLoader } from '@/components/common/Loader';
 import { userApi } from '@/api/user.api.js';
 import { leaderboardApi } from '@/api/leaderboard.api.js';
-import { BATCHES, DEPARTMENTS, ROLES } from '@/lib/constants';
+import { BATCHES, ROLES } from '@/lib/constants';
 import { toast } from 'sonner';
 import type { User } from '@/types';
 
@@ -87,14 +87,34 @@ export default function AdminDashboard() {
     fetchUsers();
   }, [currentPage, roleFilter, batchFilter]);
 
+  // const filteredUsers = useMemo(() => {
+  //   if (!searchQuery) return users;
+  //   const query = searchQuery.toLowerCase();
+  //   return users.filter(
+  //     (user) =>
+  //       user.name.toLowerCase().includes(query) ||
+  //       user.email.toLowerCase().includes(query)
+  //   );
+  // }, [users, searchQuery]);
   const filteredUsers = useMemo(() => {
-    if (!searchQuery) return users;
-    const query = searchQuery.toLowerCase();
-    return users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
-    );
+  let result = users;
+
+  // search filter
+  if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (user) =>
+          user.name.toLowerCase().includes(query) ||
+          user.email.toLowerCase().includes(query)
+      );
+    }
+
+    // 🔥 admins always on top
+    return [...result].sort((a, b) => {
+      if (a.role === 'admin' && b.role !== 'admin') return -1;
+      if (a.role !== 'admin' && b.role === 'admin') return 1;
+      return 0;
+    });
   }, [users, searchQuery]);
 
   const paginatedUsers = filteredUsers;
@@ -197,7 +217,6 @@ export default function AdminDashboard() {
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="student">Student</SelectItem>
-            <SelectItem value="moderator">Moderator</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
         </Select>
@@ -222,7 +241,6 @@ export default function AdminDashboard() {
               <TableHead>User</TableHead>
               <TableHead className="hidden md:table-cell">Role</TableHead>
               <TableHead className="hidden lg:table-cell">Batch</TableHead>
-              <TableHead className="hidden lg:table-cell">Department</TableHead>
               <TableHead className="text-center">Total Solved</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -249,14 +267,12 @@ export default function AdminDashboard() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="moderator">Moderator</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">{user.batch}</TableCell>
-                <TableCell className="hidden lg:table-cell">{user.department}</TableCell>
-                <TableCell className="text-center font-medium">{user.stats?.totalSolved}</TableCell>
+                <TableCell className="text-center font-medium">{user.role=='student'?user.stats?.totalSolved:null}</TableCell>
                 <TableCell className="text-right">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

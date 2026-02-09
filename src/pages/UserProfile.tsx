@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ExternalLink, Calendar, Building2, GraduationCap, Clock } from 'lucide-react';
+import { ExternalLink, Calendar, GraduationCap, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/common/Avatar';
 import { ProgressBar } from '@/components/common/ProgressBar';
@@ -84,12 +84,6 @@ export default function UserProfile() {
                 <GraduationCap className="h-4 w-4" />
                 Batch {user.batch}
               </span>
-              {user.department && (
-                <span className="flex items-center gap-1">
-                  <Building2 className="h-4 w-4" />
-                  {user.department}
-                </span>
-              )}
               <span className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 Joined {formatDate(user.createdAt)}

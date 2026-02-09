@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { RefreshCw, ExternalLink, TrendingUp, Target, Award, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,11 @@ import { toast } from 'sonner';
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Admin doesn't have a dashboard — redirect to admin panel
+  if (user?.role === 'admin') {
+    return <Navigate to={ROUTES.ADMIN} replace />;
+  }
 
   const stats = user?.stats || {
     totalSolved: 0,
@@ -166,7 +171,7 @@ export default function Dashboard() {
           <div>
             <h3 className="font-semibold">Profile Information</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              @{user?.leetcodeUsername || 'username'} • {user?.batch} • {user?.department}
+              @{user?.leetcodeUsername || 'username'} • {user?.batch}
             </p>
           </div>
           <Button variant="outline" asChild>

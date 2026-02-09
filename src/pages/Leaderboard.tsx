@@ -15,7 +15,7 @@ import { DifficultyBadge } from '@/components/common/DifficultyBadge';
 import { Avatar } from '@/components/common/Avatar';
 import { PageLoader } from '@/components/common/Loader';
 import { leaderboardApi } from '@/api/leaderboard.api.js';
-import { BATCHES, DEPARTMENTS, SORT_OPTIONS, ROUTES } from '@/lib/constants';
+import { BATCHES, SORT_OPTIONS, ROUTES } from '@/lib/constants';
 import type { LeaderboardEntry } from '@/types';
 
 export default function Leaderboard() {
@@ -23,7 +23,6 @@ export default function Leaderboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [batchFilter, setBatchFilter] = useState<string>('all');
-  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('totalSolved');
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
@@ -35,7 +34,6 @@ export default function Leaderboard() {
       try {
         const filters: Record<string, string> = {};
         if (batchFilter && batchFilter !== 'all') filters.batch = batchFilter;
-        if (departmentFilter && departmentFilter !== 'all') filters.department = departmentFilter;
         if (sortBy) filters.sortBy = sortBy;
         const data = await leaderboardApi.getLeaderboard(filters);
         setLeaderboardData(data);
@@ -46,7 +44,7 @@ export default function Leaderboard() {
       }
     };
     fetchLeaderboard();
-  }, [batchFilter, departmentFilter, sortBy]);
+  }, [batchFilter, sortBy]);
 
   const filteredData = useMemo(() => {
     let data = [...leaderboardData];
@@ -75,12 +73,11 @@ export default function Leaderboard() {
   const clearFilters = () => {
     setSearchQuery('');
     setBatchFilter('all');
-    setDepartmentFilter('all');
     setSortBy('totalSolved');
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = searchQuery || batchFilter !== 'all' || departmentFilter !== 'all';
+  const hasActiveFilters = searchQuery || batchFilter !== 'all';
 
   if (isLoading) {
     return <PageLoader message="Loading leaderboard..." />;
@@ -123,7 +120,7 @@ export default function Leaderboard() {
             Filters
             {hasActiveFilters && (
               <span className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                {[searchQuery, batchFilter !== 'all', departmentFilter !== 'all'].filter(Boolean).length}
+                {[searchQuery, batchFilter !== 'all'].filter(Boolean).length}
               </span>
             )}
           </Button>
@@ -138,18 +135,6 @@ export default function Leaderboard() {
                 <SelectItem value="all">All Batches</SelectItem>
                 {BATCHES.map((batch) => (
                   <SelectItem key={batch} value={batch}>{batch}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={departmentFilter} onValueChange={(v) => { setDepartmentFilter(v); setCurrentPage(1); }}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {DEPARTMENTS.map((dept) => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -188,20 +173,8 @@ export default function Leaderboard() {
               </SelectContent>
             </Select>
 
-            <Select value={departmentFilter} onValueChange={(v) => { setDepartmentFilter(v); setCurrentPage(1); }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {DEPARTMENTS.map((dept) => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="col-span-2">
+              <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -260,7 +233,6 @@ export default function Leaderboard() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm">{entry.batch}</div>
-                  <div className="text-xs text-muted-foreground">{entry.department}</div>
                 </td>
                 <td className="px-6 py-4 text-center font-semibold">{entry.stats.totalSolved}</td>
                 <td className="px-6 py-4 text-center">
@@ -311,8 +283,6 @@ export default function Leaderboard() {
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
               <span>{entry.batch}</span>
-              <span>•</span>
-              <span>{entry.department}</span>
             </div>
 
             <div className="flex items-center justify-between border-t pt-4">

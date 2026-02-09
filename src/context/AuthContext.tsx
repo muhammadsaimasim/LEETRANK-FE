@@ -77,16 +77,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(response.token);
     setUser(response.user);
     toast.success('Welcome back!');
-    // Sync stats in background after login
-    syncStatsInBackground();
+    // Sync stats in background after login (skip for admin)
+    if (response.user?.role !== 'admin') {
+      syncStatsInBackground();
+    }
   };
 
   const loginWithToken = (newToken: string, newUser: User) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
     setUser(newUser);
-    // Sync stats in background after OTP signup
-    syncStatsInBackground();
+    // Sync stats in background after OTP signup (skip for admin)
+    if (newUser?.role !== 'admin') {
+      syncStatsInBackground();
+    }
   };
 
   const register = async (data: {

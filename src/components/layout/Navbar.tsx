@@ -26,9 +26,9 @@ export function Navbar() {
   ];
 
   const authLinks = isAuthenticated
-    ? [
-        { label: 'Dashboard', path: ROUTES.DASHBOARD },
-      ]
+    ? user?.role === 'admin'
+      ? [{ label: 'Admin Panel', path: ROUTES.ADMIN }]
+      : [{ label: 'Dashboard', path: ROUTES.DASHBOARD }]
     : [];
 
   return (
@@ -86,12 +86,21 @@ export function Navbar() {
                       <p className="text-sm font-medium truncate">{user?.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
-                    <DropdownMenuItem asChild>
-                      <Link to={ROUTES.DASHBOARD} className="gap-2 cursor-pointer">
-                        <LayoutDashboard className="h-4 w-4" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
+                    {user?.role === 'admin' ? (
+                      <DropdownMenuItem asChild>
+                        <Link to={ROUTES.ADMIN} className="gap-2 cursor-pointer">
+                          <Shield className="h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem asChild>
+                        <Link to={ROUTES.DASHBOARD} className="gap-2 cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link to={`/profile/${user?.id}`} className="gap-2 cursor-pointer">
                         <User className="h-4 w-4" />
@@ -104,17 +113,6 @@ export function Navbar() {
                         Settings
                       </Link>
                     </DropdownMenuItem>
-                    {user?.role === 'admin' && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link to={ROUTES.ADMIN} className="gap-2 cursor-pointer">
-                            <Shield className="h-4 w-4" />
-                            Admin Panel
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
                       <LogOut className="h-4 w-4" />
@@ -177,16 +175,6 @@ export function Navbar() {
                     <Settings className="h-4 w-4" />
                     Settings
                   </Link>
-                  {user?.role === 'admin' && (
-                    <Link
-                      to={ROUTES.ADMIN}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50"
-                    >
-                      <Shield className="h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  )}
                   <button
                     onClick={() => {
                       logout();

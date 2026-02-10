@@ -7,7 +7,7 @@ export default function Landing() {
   const stats = [
     { label: 'Active Coders', value: '500+', icon: Users },
     { label: 'Problems Solved', value: '25K+', icon: Code2 },
-    { label: 'Universities', value: '10+', icon: Trophy },
+    //{ label: 'Universities', value: '10+', icon: Trophy },
   ];
 
   const features = [
@@ -108,7 +108,7 @@ export default function Landing() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 border-y border-border bg-card/50">
+      {/* <section className="py-16 border-y border-border bg-card/50">
         <div className="container">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
             {stats.map((stat, index) => (
@@ -127,7 +127,28 @@ export default function Landing() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
+      <section className="py-16 border-y border-border bg-card/50">
+  <div className="container">
+    <div className="mx-auto grid grid-flow-col auto-cols-fr items-center gap-12 max-w-8xl">
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className="flex items-center gap-4 justify-center"
+        >
+          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+            <stat.icon className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <div className="text-3xl font-bold">{stat.value}</div>
+            <div className="text-sm text-muted-foreground">{stat.label}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
 
       {/* Features Section */}
       <section className="py-24 relative">
@@ -181,7 +202,7 @@ export default function Landing() {
             <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-primary/20 mb-6">
               <Braces className="h-7 w-7 text-primary" />
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
               Ready to compete?
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">

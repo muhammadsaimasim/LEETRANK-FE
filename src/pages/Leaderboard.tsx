@@ -15,7 +15,7 @@ import { DifficultyBadge } from '@/components/common/DifficultyBadge';
 import { Avatar } from '@/components/common/Avatar';
 import { PageLoader } from '@/components/common/Loader';
 import { leaderboardApi } from '@/api/leaderboard.api.js';
-import { BATCHES, SORT_OPTIONS, ROUTES } from '@/lib/constants';
+import { BATCHES, ROUTES } from '@/lib/constants';
 import type { LeaderboardEntry } from '@/types';
 
 export default function Leaderboard() {
@@ -23,7 +23,6 @@ export default function Leaderboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [batchFilter, setBatchFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState('totalSolved');
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const itemsPerPage = 20;
@@ -34,7 +33,6 @@ export default function Leaderboard() {
       try {
         const filters: Record<string, string> = {};
         if (batchFilter && batchFilter !== 'all') filters.batch = batchFilter;
-        if (sortBy) filters.sortBy = sortBy;
         const data = await leaderboardApi.getLeaderboard(filters);
         setLeaderboardData(data);
       } catch (error) {
@@ -44,7 +42,7 @@ export default function Leaderboard() {
       }
     };
     fetchLeaderboard();
-  }, [batchFilter, sortBy]);
+  }, [batchFilter]);
 
   const filteredData = useMemo(() => {
     let data = [...leaderboardData];
@@ -73,7 +71,6 @@ export default function Leaderboard() {
   const clearFilters = () => {
     setSearchQuery('');
     setBatchFilter('all');
-    setSortBy('totalSolved');
     setCurrentPage(1);
   };
 
@@ -139,17 +136,6 @@ export default function Leaderboard() {
               </SelectContent>
             </Select>
 
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                {SORT_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             {hasActiveFilters && (
               <Button variant="ghost" onClick={clearFilters}>
                 Clear filters
@@ -173,17 +159,6 @@ export default function Leaderboard() {
               </SelectContent>
             </Select>
 
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                {SORT_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             {hasActiveFilters && (
               <Button variant="outline" onClick={clearFilters} className="col-span-2">
                 Clear all filters
@@ -201,10 +176,10 @@ export default function Leaderboard() {
               <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Rank</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">User</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Batch</th>
+              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Leetcode Rank</th>
               <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Total</th>
-              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Easy</th>
-              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Medium</th>
               <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Hard</th>
+              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Medium</th>
               <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
@@ -234,10 +209,14 @@ export default function Leaderboard() {
                 <td className="px-6 py-4">
                   <div className="text-sm">{entry.batch}</div>
                 </td>
-                <td className="px-6 py-4 text-center font-semibold">{entry.stats.totalSolved}</td>
+                
                 <td className="px-6 py-4 text-center">
-                  <DifficultyBadge difficulty="easy" count={entry.stats.easySolved} showLabel={false} />
+                  <div className="text-sm">#{entry.stats.ranking}</div>
                 </td>
+                <td className="px-6 py-4 text-center font-semibold">{entry.stats.totalSolved}</td>
+                {/* <td className="px-6 py-4 text-center">
+                  <DifficultyBadge difficulty="hard" count={entry.stats.easySolved} showLabel={false} />
+                </td> */}
                 <td className="px-6 py-4 text-center">
                   <DifficultyBadge difficulty="medium" count={entry.stats.mediumSolved} showLabel={false} />
                 </td>

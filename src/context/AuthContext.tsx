@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { authApi } from '@/api/auth.api.js';
 import { userApi } from '@/api/user.api.js';
+import { ROUTES } from '@/lib/constants';
 import type { User } from '@/types';
 import { toast } from 'sonner';
 
@@ -37,6 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     toast.success('Logged out successfully');
+    if (window.location.pathname !== ROUTES.LOGIN) {
+      window.location.assign(ROUTES.LOGIN);
+    }
   }, []);
 
   const verifyToken = useCallback(async () => {

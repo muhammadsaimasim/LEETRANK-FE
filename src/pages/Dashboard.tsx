@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { RefreshCw, ExternalLink, TrendingUp, Target, Award, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { userApi } from '@/api/user.api.js';
+import { leaderboardApi } from '@/api/leaderboard.api.js';
 import { StatsCard } from '@/components/common/StatsCard';
 import { ProgressBar } from '@/components/common/ProgressBar';
 import { Avatar } from '@/components/common/Avatar';
@@ -14,6 +15,7 @@ import { toast } from 'sonner';
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [leaderboardRank, setLeaderboardRank] = useState<number | null>(null);
 
   // Admin doesn't have a dashboard — redirect to admin panel
   if (user?.role === 'admin') {
@@ -28,6 +30,21 @@ export default function Dashboard() {
     ranking: 0,
     lastSynced: null,
   };
+
+  useEffect(() => {
+    const fetchLeaderboardRank = async () => {
+      if (!user?.id) return;
+      try {
+        const leaderboard = await leaderboardApi.getLeaderboard();
+        const entry = leaderboard.find((item) => item.id === user.id);
+        setLeaderboardRank(entry?.rank ?? null);
+      } catch (error) {
+        setLeaderboardRank(null);
+      }
+    };
+
+    fetchLeaderboardRank();
+  }, [user?.id]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -81,8 +98,8 @@ export default function Dashboard() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatsCard
           title="Your Rank"
-          value={stats.ranking ? `#${stats.ranking.toLocaleString()}` : 'N/A'}
-          subtitle="LeetCode Global"
+          value={leaderboardRank ? `#${leaderboardRank.toLocaleString()}` : 'N/A'}
+          // subtitle="LeetCode Global"
           icon={<Award className="h-5 w-5" />}
         />
         <StatsCard

@@ -1,6 +1,6 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-export const BATCHES = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+export const BATCHES = [ '2022', '2023', '2024', '2025'];
 
 export const SORT_OPTIONS = [
   { value: 'totalSolved', label: 'Total Solved' },

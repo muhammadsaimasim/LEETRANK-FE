@@ -16,6 +16,7 @@ export default function UserProfile() {
   const { user: currentUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isAdmin = user?.role === 'admin';
 
   const isOwnProfile = currentUser?.id === id;
 
@@ -77,13 +78,15 @@ export default function UserProfile() {
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
               <h1 className="text-2xl font-bold">{user.name}</h1>
-              <RankBadge position={stats.ranking || 0} size="lg" />
+              {/* <RankBadge position={user.role=="student"?stats.ranking || 0:null} size="lg" /> */}
+              {!isAdmin && (<RankBadge position={stats.ranking || 0} size="lg" /> )}
             </div>
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              {!isAdmin && (
               <span className="flex items-center gap-1">
                 <GraduationCap className="h-4 w-4" />
                 Batch {user.batch}
-              </span>
+              </span>)}
               <span className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 Joined {formatDate(user.createdAt)}
@@ -108,7 +111,8 @@ export default function UserProfile() {
           )}
         </div>
       </div>
-
+      {!isAdmin &&(
+        <>
       {/* Stats Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <div className="rounded-xl border bg-card p-6 text-center">
@@ -191,6 +195,7 @@ export default function UserProfile() {
           </div>
         </div>
       </div>
+    </>)}
     </div>
   );
 }

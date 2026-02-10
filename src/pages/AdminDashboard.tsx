@@ -36,8 +36,10 @@ import { leaderboardApi } from '@/api/leaderboard.api.js';
 import { BATCHES, ROLES } from '@/lib/constants';
 import { toast } from 'sonner';
 import type { User } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AdminDashboard() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [overviewStats, setOverviewStats] = useState({ totalUsers: 0, totalSolved: 0, averageSolved: 0, topPerformer: { name: '-', totalSolved: 0 } });
   const [searchQuery, setSearchQuery] = useState('');
@@ -97,10 +99,14 @@ export default function AdminDashboard() {
   //   );
   // }, [users, searchQuery]);
   const filteredUsers = useMemo(() => {
-  let result = users;
+    let result = users;
 
-  // search filter
-  if (searchQuery) {
+    if (currentUser?.id) {
+      result = result.filter((user) => user.id !== currentUser.id);
+    }
+
+    // search filter
+    if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (user) =>
@@ -115,7 +121,7 @@ export default function AdminDashboard() {
       if (a.role !== 'admin' && b.role === 'admin') return 1;
       return 0;
     });
-  }, [users, searchQuery]);
+  }, [users, searchQuery, currentUser?.id]);
 
   const paginatedUsers = filteredUsers;
 

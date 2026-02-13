@@ -79,7 +79,7 @@ export default function Register() {
                 <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
-                  placeholder="John Doe"
+                  placeholder="Your Full Name"
                   {...register('name')}
                   className={errors.name ? 'border-destructive' : ''}
                 />
@@ -93,7 +93,7 @@ export default function Register() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@university.edu"
+                  placeholder="you@gmail.com"
                   {...register('email')}
                   className={errors.email ? 'border-destructive' : ''}
                 />

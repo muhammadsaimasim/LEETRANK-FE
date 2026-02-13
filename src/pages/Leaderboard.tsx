@@ -193,7 +193,7 @@ export default function Leaderboard() {
                   <div className="flex items-center gap-3">
                     <Avatar name={entry.name} src={entry.stats.avatar} size="sm" />
                     <div>
-                      <div className="font-medium">{entry.name}</div>
+                      <div className="font-medium"><a href={`${ROUTES.PROFILE}/${entry.id}`} target="_blank" rel="noopener noreferrer">{entry.name}</a></div>
                       <a
                         href={entry.leetcodeProfileURL}
                         target="_blank"

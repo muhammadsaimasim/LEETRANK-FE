@@ -39,6 +39,8 @@ const transformUser = (user) => {
     name: user.name,
     email: user.email,
     role: user.role,
+    rollno: user.rollno,
+    programme: user.programme,
     leetcodeUsername: user.leetcodeUsername,
     leetcodeProfileURL: user.leetcodeProfileURL,
     batch: user.batch,

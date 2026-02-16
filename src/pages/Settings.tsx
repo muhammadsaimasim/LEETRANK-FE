@@ -68,6 +68,7 @@ export default function Settings() {
     defaultValues: {
       name: user?.name || '',
       batch: user?.batch || '',
+      rollno: user?.rollno || '',
     },
   });
 
@@ -216,6 +217,20 @@ export default function Settings() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="rollno">Roll Number</Label>
+                <Input
+                  id="rollno"
+                  placeholder="e.g. CT-12345"
+                  {...profileForm.register('rollno')}
+                  className={profileForm.formState.errors.rollno ? 'border-destructive' : ''}
+                />
+                {profileForm.formState.errors.rollno && (
+                  <p className="text-sm text-destructive">{profileForm.formState.errors.rollno.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Programme is auto-derived from roll number prefix</p>
               </div>
 
               <Button type="submit" disabled={profileForm.formState.isSubmitting}>

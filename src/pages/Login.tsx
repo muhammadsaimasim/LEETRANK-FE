@@ -68,7 +68,7 @@ export default function Login() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@university.edu"
+                placeholder="you@cloud.neduet.edu.pk"
                 className="h-11"
                 {...register('email')}
               />

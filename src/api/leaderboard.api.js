@@ -48,6 +48,8 @@ const transformLeaderboardUser = (user) => {
     id: user._id || user.id,
     rank: 0,
     name: user.name,
+    rollno: user.rollno,
+    programme: user.programme,
     leetcodeUsername: user.leetcodeUsername,
     leetcodeProfileURL: user.leetcodeProfileURL,
     batch: user.batch,
@@ -96,6 +98,7 @@ export const leaderboardApi = {
       averageProblems: Math.round(res.averageStats?.avgTotal || 0),
       topPerformer: res.topUser
         ? {
+            id: res.topUser._id || res.topUser.id,
             name: res.topUser.name,
             totalSolved: res.topUser.stats?.totalSolved || 0,
           }

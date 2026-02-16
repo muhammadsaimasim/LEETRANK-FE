@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, RefreshCw, ChevronLeft, ChevronRight, Users, Target, TrendingUp, Crown } from 'lucide-react';
+import { Search, RefreshCw, ChevronLeft, ChevronRight, Users, Target, TrendingUp, Crown, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -33,6 +36,7 @@ import { Avatar } from '@/components/common/Avatar';
 import { Loader, PageLoader } from '@/components/common/Loader';
 import { userApi } from '@/api/user.api.js';
 import { leaderboardApi } from '@/api/leaderboard.api.js';
+import { settingsApi } from '@/api/settings.api.js';
 import { BATCHES, ROLES } from '@/lib/constants';
 import { toast } from 'sonner';
 import type { User } from '@/types';
@@ -41,7 +45,7 @@ import { useAuth } from '@/context/AuthContext';
 export default function AdminDashboard() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
-  const [overviewStats, setOverviewStats] = useState({ totalUsers: 0, totalSolved: 0, averageSolved: 0, topPerformer: { name: '-', totalSolved: 0 } });
+  const [overviewStats, setOverviewStats] = useState({ totalUsers: 0, totalSolved: 0, averageSolved: 0, topPerformer: { id: '', name: '-', totalSolved: 0 } });
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [batchFilter, setBatchFilter] = useState<string>('all');
@@ -49,6 +53,11 @@ export default function AdminDashboard() {
   const [totalPages, setTotalPages] = useState(1);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [leaderboardColumns, setLeaderboardColumns] = useState({
+    rollno: true, programme: true, batch: true, leetcodeRank: true,
+    total: true, hard: true, medium: true,
+  });
+  const [isSavingColumns, setIsSavingColumns] = useState(false);
   const itemsPerPage = 10;
 
   const fetchUsers = async () => {
@@ -74,15 +83,25 @@ export default function AdminDashboard() {
         totalUsers: stats.totalUsers,
         totalSolved: stats.totalProblemsSolved,
         averageSolved: stats.averageProblems,
-        topPerformer: stats.topPerformer || { name: '-', totalSolved: 0 },
+        topPerformer: stats.topPerformer || { id: '', name: '-', totalSolved: 0 },
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
   };
 
+  const fetchLeaderboardColumns = async () => {
+    try {
+      const columns = await settingsApi.getLeaderboardColumns();
+      if (columns) setLeaderboardColumns(columns);
+    } catch (error) {
+      console.error('Failed to fetch leaderboard column settings:', error);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchLeaderboardColumns();
   }, []);
 
   useEffect(() => {
@@ -160,6 +179,32 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleColumnToggle = (key: string) => {
+    setLeaderboardColumns((prev) => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
+  };
+
+  const handleSaveColumns = async () => {
+    setIsSavingColumns(true);
+    try {
+      await settingsApi.updateLeaderboardColumns(leaderboardColumns);
+      toast.success('Leaderboard column settings saved!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save column settings');
+    } finally {
+      setIsSavingColumns(false);
+    }
+  };
+
+  const columnLabels: Record<string, string> = {
+    rollno: 'Roll No',
+    programme: 'Programme',
+    batch: 'Batch',
+    leetcodeRank: 'LeetCode Rank',
+    total: 'Total Solved',
+    hard: 'Hard',
+    medium: 'Medium',
+  };
+
   return (
     <div className="container py-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -196,10 +241,45 @@ export default function AdminDashboard() {
         />
         <StatsCard
           title="Top Performer"
-          value={overviewStats.topPerformer.name}
+          value={
+            overviewStats.topPerformer.id ? (
+              <Link to={`/profile/${overviewStats.topPerformer.id}`} className="hover:underline">
+                {overviewStats.topPerformer.name}
+              </Link>
+            ) : (
+              overviewStats.topPerformer.name
+            )
+          }
           subtitle={`${overviewStats.topPerformer.totalSolved} problems`}
           icon={<Crown className="h-5 w-5" />}
         />
+      </div>
+
+      {/* Leaderboard Column Settings */}
+      <div className="rounded-xl border bg-card p-6 mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Settings className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-lg font-semibold">Leaderboard Display Settings</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">Choose which columns are visible on the public leaderboard.</p>
+        <div className="flex flex-wrap gap-6">
+          {Object.entries(columnLabels).map(([key, label]) => (
+            <div key={key} className="flex items-center gap-2">
+              <Switch
+                id={`col-${key}`}
+                checked={leaderboardColumns[key as keyof typeof leaderboardColumns]}
+                onCheckedChange={() => handleColumnToggle(key)}
+              />
+              <Label htmlFor={`col-${key}`} className="text-sm cursor-pointer">{label}</Label>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4">
+          <Button onClick={handleSaveColumns} disabled={isSavingColumns} size="sm">
+            {isSavingColumns && <Loader size="sm" className="mr-2" />}
+            Save Settings
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -246,8 +326,9 @@ export default function AdminDashboard() {
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead className="hidden md:table-cell">Role</TableHead>
+              <TableHead className="hidden md:table-cell">Programme</TableHead>
               <TableHead className="hidden lg:table-cell">Batch</TableHead>
-              <TableHead className="text-center">Total Solved</TableHead>
+              <TableHead className="text-center">Roll No</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -277,8 +358,10 @@ export default function AdminDashboard() {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                {/* <TableCell className="hidden lg:table-cell">{user.}</TableCell> */}
+                <TableCell className="hidden md:table-cell">{user.programme || '-'}</TableCell>
                 <TableCell className="hidden lg:table-cell">{user.batch}</TableCell>
-                <TableCell className="text-center font-medium">{user.role=='student'?user.stats?.totalSolved:null}</TableCell>
+                <TableCell className="text-center font-medium">{user.role=='student'?user?.rollno:null}</TableCell>
                 <TableCell className="text-right">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

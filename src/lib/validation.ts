@@ -14,10 +14,17 @@ export const registerSchema = z.object({
   email: z
     .string()
     .email('Please enter a valid email address')
-    .max(255, 'Email must be less than 255 characters'),
+    .max(255, 'Email must be less than 255 characters')
+    .refine((val) => val.endsWith('@cloud.neduet.edu.pk'), {
+      message: 'Only university emails (@cloud.neduet.edu.pk) are allowed',
+    }),
   password: z
     .string()
     .min(6, 'Password must be at least 6 characters'),
+  rollno: z
+    .string()
+    .min(1, 'Roll number is required')
+    .regex(/^(CT|AI|DS|CR|GA)-\d{5}$/i, 'Roll number must be in format XX-XXXXX (e.g. CT-12345)'),
   leetcodeUsername: z
     .string()
     .min(1, 'LeetCode username is required')
@@ -28,7 +35,6 @@ export const registerSchema = z.object({
     .url('Please enter a valid URL')
     .regex(/leetcode\.com/, 'URL must be a LeetCode profile URL'),
   batch: z.string().min(1, 'Please select your batch'),
-  department: z.string().optional(),
 });
 
 export const profileUpdateSchema = z.object({
@@ -39,7 +45,11 @@ export const profileUpdateSchema = z.object({
     .regex(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces')
     .optional(),
   batch: z.string().optional(),
-  department: z.string().max(100).optional(),
+  rollno: z
+    .string()
+    .regex(/^(CT|AI|DS|CR|GA)-\d{5}$/i, 'Roll number must be in format XX-XXXXX (e.g. CT-12345)')
+    .optional()
+    .or(z.literal('')),
 });
 
 export const leetcodeUpdateSchema = z.object({

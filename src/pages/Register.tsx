@@ -42,6 +42,7 @@ export default function Register() {
         name: data.name,
         email: data.email,
         password: data.password,
+        rollno: data.rollno,
         leetcodeUsername: data.leetcodeUsername,
         leetcodeProfileURL: data.leetcodeProfileURL,
         batch: data.batch,
@@ -93,14 +94,30 @@ export default function Register() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@gmail.com"
+                  placeholder="you@cloud.neduet.edu.pk"
                   {...register('email')}
                   className={errors.email ? 'border-destructive' : ''}
                 />
                 {errors.email && (
                   <p className="text-sm text-destructive">{errors.email.message}</p>
                 )}
+                {/* <p className="text-xs text-muted-foreground">Use your university email (@cloud.neduet.edu.pk)</p> */}
               </div>
+            </div>
+
+            {/* Roll Number */}
+            <div className="space-y-2">
+              <Label htmlFor="rollno">Roll Number</Label>
+              <Input
+                id="rollno"
+                placeholder="e.g. CT-12345"
+                {...register('rollno')}
+                className={errors.rollno ? 'border-destructive' : ''}
+              />
+              {errors.rollno && (
+                <p className="text-sm text-destructive">{errors.rollno.message}</p>
+              )}
+              {/* <p className="text-xs text-muted-foreground">Format: CT/AI/DS/CR/GA followed by hyphen and 5 digits</p> */}
             </div>
 
             {/* Password */}

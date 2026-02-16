@@ -3,6 +3,8 @@ export interface User {
   name: string;
   email: string;
   role: 'student' | 'admin';
+  rollno: string;
+  programme?: string;
   leetcodeUsername: string;
   leetcodeProfileURL: string;
   batch: string;
@@ -26,6 +28,8 @@ export interface LeaderboardEntry {
   id: string;
   rank: number;
   name: string;
+  rollno?: string;
+  programme?: string;
   leetcodeUsername: string;
   leetcodeProfileURL: string;
   batch: string;

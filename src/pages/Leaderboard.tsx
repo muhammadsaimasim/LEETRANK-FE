@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, ExternalLink, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,7 @@ import { DifficultyBadge } from '@/components/common/DifficultyBadge';
 import { Avatar } from '@/components/common/Avatar';
 import { PageLoader } from '@/components/common/Loader';
 import { leaderboardApi } from '@/api/leaderboard.api.js';
+import { settingsApi } from '@/api/settings.api.js';
 import { BATCHES, ROUTES } from '@/lib/constants';
 import type { LeaderboardEntry } from '@/types';
 
@@ -25,7 +26,18 @@ export default function Leaderboard() {
   const [batchFilter, setBatchFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
+  const [isReversed, setIsReversed] = useState(false);
+  const [columns, setColumns] = useState({
+    rollno: true, programme: true, batch: true, leetcodeRank: true,
+    total: true, hard: true, medium: true,
+  });
   const itemsPerPage = 20;
+
+  useEffect(() => {
+    settingsApi.getLeaderboardColumns()
+      .then((cols) => { if (cols) setColumns(cols); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -57,9 +69,14 @@ export default function Leaderboard() {
       );
     }
 
+    // Reverse order if toggled
+    if (isReversed) {
+      data.reverse();
+    }
+
     // Recalculate ranks
     return data.map((entry, index) => ({ ...entry, rank: index + 1 }));
-  }, [leaderboardData, searchQuery]);
+  }, [leaderboardData, searchQuery, isReversed]);
 
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -175,11 +192,23 @@ export default function Leaderboard() {
             <tr>
               <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Rank</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">User</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Batch</th>
-              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Leetcode Rank</th>
-              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Total</th>
-              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Hard</th>
-              <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Medium</th>
+              {columns.rollno && <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Roll No</th>}
+              {columns.programme && <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Programme</th>}
+              {columns.batch && <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">Batch</th>}
+              {columns.leetcodeRank && (
+                <th
+                  className="px-6 py-4 text-center text-sm font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => setIsReversed((prev) => !prev)}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    Leetcode Rank
+                    <ArrowUpDown className="h-3.5 w-3.5" />
+                  </span>
+                </th>
+              )}
+              {columns.total && <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Total</th>}
+              {columns.hard && <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Hard</th>}
+              {columns.medium && <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Medium</th>}
               <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
@@ -206,23 +235,41 @@ export default function Leaderboard() {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm">{entry.batch}</div>
-                </td>
+                {columns.rollno && (
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-medium">{entry.rollno || '-'}</div>
+                  </td>
+                )}
+                {columns.programme && (
+                  <td className="px-6 py-4">
+                    <div className="text-sm">{entry.programme || '-'}</div>
+                  </td>
+                )}
+                {columns.batch && (
+                  <td className="px-6 py-4">
+                    <div className="text-sm">{entry.batch}</div>
+                  </td>
+                )}
                 
-                <td className="px-6 py-4 text-center">
-                  <div className="text-sm">#{entry.stats.ranking}</div>
-                </td>
-                <td className="px-6 py-4 text-center font-semibold">{entry.stats.totalSolved}</td>
+                {columns.leetcodeRank && (
+                  <td className="px-6 py-4 text-center">
+                    <div className="text-sm">#{entry.stats.ranking}</div>
+                  </td>
+                )}
+                {columns.total && <td className="px-6 py-4 text-center font-semibold">{entry.stats.totalSolved}</td>}
                 {/* <td className="px-6 py-4 text-center">
                   <DifficultyBadge difficulty="hard" count={entry.stats.easySolved} showLabel={false} />
                 </td> */}
-                <td className="px-6 py-4 text-center">
-                  <DifficultyBadge difficulty="medium" count={entry.stats.mediumSolved} showLabel={false} />
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <DifficultyBadge difficulty="hard" count={entry.stats.hardSolved} showLabel={false} />
-                </td>
+                {columns.medium && (
+                  <td className="px-6 py-4 text-center">
+                    <DifficultyBadge difficulty="medium" count={entry.stats.mediumSolved} showLabel={false} />
+                  </td>
+                )}
+                {columns.hard && (
+                  <td className="px-6 py-4 text-center">
+                    <DifficultyBadge difficulty="hard" count={entry.stats.hardSolved} showLabel={false} />
+                  </td>
+                )}
                 <td className="px-6 py-4 text-right">
                   <Button variant="ghost" size="sm" asChild>
                     <Link to={`${ROUTES.PROFILE}/${entry.id}`}>View</Link>
@@ -261,7 +308,9 @@ export default function Leaderboard() {
             </div>
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <span>{entry.batch}</span>
+              {columns.rollno && entry.rollno && <><span>{entry.rollno}</span><span>•</span></>}
+              {columns.programme && entry.programme && <><span>{entry.programme}</span><span>•</span></>}
+              {columns.batch && <span>{entry.batch}</span>}
             </div>
 
             <div className="flex items-center justify-between border-t pt-4">

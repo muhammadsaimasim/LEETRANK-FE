@@ -61,6 +61,7 @@ export default function Settings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const isAdmin = user?.role === 'admin';
 
   // Profile form
   const profileForm = useForm<ProfileUpdateFormData>({
@@ -93,13 +94,13 @@ export default function Settings() {
 
   const newPassword = passwordForm.watch('newPassword', '');
 
-  const passwordRequirements = [
-    { label: 'At least 8 characters', met: newPassword.length >= 8 },
-    { label: 'One uppercase letter', met: /[A-Z]/.test(newPassword) },
-    { label: 'One lowercase letter', met: /[a-z]/.test(newPassword) },
-    { label: 'One number', met: /[0-9]/.test(newPassword) },
-    { label: 'One special character', met: /[^A-Za-z0-9]/.test(newPassword) },
-  ];
+  // const passwordRequirements = [
+  //   { label: 'At least 6 characters', met: newPassword.length >= 6 },
+  //   // { label: 'One uppercase letter', met: /[A-Z]/.test(newPassword) },
+  //   // { label: 'One lowercase letter', met: /[a-z]/.test(newPassword) },
+  //   // { label: 'One number', met: /[0-9]/.test(newPassword) },
+  //   // { label: 'One special character', met: /[^A-Za-z0-9]/.test(newPassword) },
+  // ];
 
   const handleProfileUpdate = async (data: ProfileUpdateFormData) => {
     try {
@@ -166,15 +167,18 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={cn(
+    "grid w-full",
+    isAdmin ? "grid-cols-3" : "grid-cols-4"
+  )}>
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4 hidden sm:inline" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="leetcode" className="gap-2">
+          {!isAdmin && (<TabsTrigger value="leetcode" className="gap-2">
             <Code className="h-4 w-4 hidden sm:inline" />
             LeetCode
-          </TabsTrigger>
+          </TabsTrigger>)}
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4 hidden sm:inline" />
             Security
@@ -202,7 +206,7 @@ export default function Settings() {
                 )}
               </div>
 
-              <div className="space-y-2">
+              {!isAdmin && (<div className="space-y-2">
                 <Label>Batch</Label>
                 <Select
                   defaultValue={user?.batch}
@@ -217,9 +221,9 @@ export default function Settings() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </div>)}
 
-              <div className="space-y-2">
+              {!isAdmin && (<div className="space-y-2">
                 <Label htmlFor="rollno">Roll Number</Label>
                 <Input
                   id="rollno"
@@ -231,7 +235,7 @@ export default function Settings() {
                   <p className="text-sm text-destructive">{profileForm.formState.errors.rollno.message}</p>
                 )}
                 <p className="text-xs text-muted-foreground">Programme is auto-derived from roll number prefix</p>
-              </div>
+              </div>)}
 
               <Button type="submit" disabled={profileForm.formState.isSubmitting}>
                 {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -344,7 +348,7 @@ export default function Settings() {
                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {newPassword && (
+                {/* {newPassword && (
                   <div className="mt-3 space-y-1.5">
                     {passwordRequirements.map((req) => (
                       <div
@@ -359,7 +363,7 @@ export default function Settings() {
                       </div>
                     ))}
                   </div>
-                )}
+                )} */}
                 {passwordForm.formState.errors.newPassword && (
                   <p className="text-sm text-destructive">
                     {passwordForm.formState.errors.newPassword.message}

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { authApi } from '@/api/auth.api.js';
 import { registerSchema, type RegisterFormData } from '@/lib/validation';
-import { ROUTES, BATCHES } from '@/lib/constants';
+import { ROUTES, BATCHES, PROGRAMMES } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function Register() {
@@ -32,6 +32,7 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       batch: '',
+      programme: '',
     },
   });
 
@@ -46,6 +47,7 @@ export default function Register() {
         leetcodeUsername: data.leetcodeUsername,
         leetcodeProfileURL: data.leetcodeProfileURL,
         batch: data.batch,
+        programme: data.programme,
       });
       toast.success('OTP sent to your email! Please verify to complete registration.');
       navigate(ROUTES.VERIFY_OTP, {
@@ -173,22 +175,41 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Batch */}
-            <div className="space-y-2">
-              <Label>Batch</Label>
-              <Select onValueChange={(value) => setValue('batch', value)}>
-                <SelectTrigger className={errors.batch ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Select batch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BATCHES.map((batch) => (
-                    <SelectItem key={batch} value={batch}>{batch}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.batch && (
-                <p className="text-sm text-destructive">{errors.batch.message}</p>
-              )}
+            {/* Batch & Programme */}
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Batch</Label>
+                <Select onValueChange={(value) => setValue('batch', value)}>
+                  <SelectTrigger className={errors.batch ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Select batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BATCHES.map((batch) => (
+                      <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.batch && (
+                  <p className="text-sm text-destructive">{errors.batch.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Programme</Label>
+                <Select onValueChange={(value) => setValue('programme', value)}>
+                  <SelectTrigger className={errors.programme ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Select programme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROGRAMMES.map((prog) => (
+                      <SelectItem key={prog} value={prog}>{prog}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.programme && (
+                  <p className="text-sm text-destructive">{errors.programme.message}</p>
+                )}
+              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>

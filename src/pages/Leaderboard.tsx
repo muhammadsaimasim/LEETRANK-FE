@@ -265,14 +265,14 @@ export default function Leaderboard() {
                 {/* <td className="px-6 py-4 text-center">
                   <DifficultyBadge difficulty="hard" count={entry.stats.easySolved} showLabel={false} />
                 </td> */}
+                    {columns.hard && (
+                      <td className="px-6 py-4 text-center">
+                        <DifficultyBadge difficulty="hard" count={entry.stats.hardSolved} showLabel={false} />
+                      </td>
+                    )}
                 {columns.medium && (
                   <td className="px-6 py-4 text-center">
                     <DifficultyBadge difficulty="medium" count={entry.stats.mediumSolved} showLabel={false} />
-                  </td>
-                )}
-                {columns.hard && (
-                  <td className="px-6 py-4 text-center">
-                    <DifficultyBadge difficulty="hard" count={entry.stats.hardSolved} showLabel={false} />
                   </td>
                 )}
                 <td className="px-6 py-4 text-right">

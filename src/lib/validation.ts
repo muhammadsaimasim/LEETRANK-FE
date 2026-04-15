@@ -35,6 +35,7 @@ export const registerSchema = z.object({
     .url('Please enter a valid URL')
     .regex(/leetcode\.com/, 'URL must be a LeetCode profile URL'),
   batch: z.string().min(1, 'Please select your batch'),
+  programme: z.string().min(1, 'Please select your programme'),
 });
 
 export const profileUpdateSchema = z.object({

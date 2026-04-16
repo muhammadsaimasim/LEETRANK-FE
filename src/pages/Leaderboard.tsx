@@ -50,6 +50,7 @@ export default function Leaderboard() {
       try {
         const filters: Record<string, string> = {};
         if (batchFilter && batchFilter !== 'all') filters.batch = batchFilter;
+        filters.limit = '500';
         const data = await leaderboardApi.getLeaderboard(filters);
         setLeaderboardData(data);
       } catch (error) {

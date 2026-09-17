@@ -1,6 +1,10 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-export const BATCHES = [ '2022', '2023', '2024', '2025'];
+// All batches that can exist in the data — used by the leaderboard/admin filters.
+export const BATCHES = ['2022', '2023', '2024', '2025', '2026'];
+// Batches still open for registration. 2022 has graduated, so it stays filterable
+// but can no longer be picked on signup.
+export const SIGNUP_BATCHES = BATCHES.filter((batch) => batch !== '2022');
 export const PROGRAMMES = ["BSCS", "BSCS (AI)", "BSCS (CR)", "BSCS (DS)", "BSCS (GA)"];
 
 export const SORT_OPTIONS = [

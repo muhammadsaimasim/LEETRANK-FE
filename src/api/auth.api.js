@@ -119,6 +119,13 @@ export const authApi = {
       body: JSON.stringify({ email }),
     }),
 
+  verifyForgotPasswordOTP: (email, otp) =>
+    request('/auth/verify-reset-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp }),
+    }),
+
   resetPassword: (email, otp, newPassword) =>
     request('/auth/reset-password', {
       method: 'POST',

@@ -76,7 +76,9 @@ export default function VerifyOTP() {
         toast.success('Account created successfully!');
         navigate(ROUTES.LEADERBOARD, { replace: true });
       } else {
-        // For forgot-password: navigate to reset page with email and OTP
+        // Validate the OTP here so an invalid code is reported on this page,
+        // not after the user has already typed a new password.
+        await authApi.verifyForgotPasswordOTP(email, otpString);
         toast.success('OTP verified! Set your new password.');
         navigate(ROUTES.RESET_PASSWORD, {
           replace: true,

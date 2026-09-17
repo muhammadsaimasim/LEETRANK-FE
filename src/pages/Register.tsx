@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { authApi } from '@/api/auth.api.js';
 import { registerSchema, type RegisterFormData } from '@/lib/validation';
-import { ROUTES, BATCHES, PROGRAMMES } from '@/lib/constants';
+import { ROUTES, SIGNUP_BATCHES, PROGRAMMES } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function Register() {
@@ -184,7 +184,7 @@ export default function Register() {
                     <SelectValue placeholder="Select batch" />
                   </SelectTrigger>
                   <SelectContent>
-                    {BATCHES.map((batch) => (
+                    {SIGNUP_BATCHES.map((batch) => (
                       <SelectItem key={batch} value={batch}>{batch}</SelectItem>
                     ))}
                   </SelectContent>

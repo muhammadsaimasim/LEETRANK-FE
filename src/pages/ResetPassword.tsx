@@ -52,7 +52,16 @@ export default function ResetPassword() {
       toast.success('Password reset successfully! Please log in.');
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (error: any) {
-      toast.error(error.message || 'Failed to reset password');
+      const message = error.message || 'Failed to reset password';
+      toast.error(message);
+      // The OTP can still expire (or be replaced by a resend) between the two
+      // steps — send the user back to the OTP screen instead of stranding them.
+      if (/otp/i.test(message)) {
+        navigate(ROUTES.VERIFY_OTP, {
+          replace: true,
+          state: { email, type: 'forgot-password' },
+        });
+      }
     } finally {
       setIsLoading(false);
     }

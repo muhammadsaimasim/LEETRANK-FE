@@ -18,24 +18,39 @@ import { Avatar } from '@/components/common/Avatar';
 import { PageLoader } from '@/components/common/Loader';
 import { leaderboardApi } from '@/api/leaderboard.api.js';
 import { settingsApi } from '@/api/settings.api.js';
-import { BATCHES, ROUTES } from '@/lib/constants';
+import { BATCHES, PROGRAMMES, ROUTES } from '@/lib/constants';
 import type { LeaderboardEntry } from '@/types';
 
 import { useAuth } from '@/context/AuthContext';
+
+// Parses "CT-23001" (or "ct23001") into its prefix and number; null if not a full roll number.
+function parseRollNo(value: string): { prefix: string; num: number } | null {
+  const match = value.trim().toUpperCase().match(/^([A-Z]{2})-?(\d{5})$/);
+  return match ? { prefix: match[1], num: Number(match[2]) } : null;
+}
+
+// Stored programmes aren't consistent ("BS CS" vs "BSCS"), so compare ignoring spaces/punctuation/case.
+function normalizeProgramme(value?: string): string {
+  return (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
 
 export default function Leaderboard() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [batchFilter, setBatchFilter] = useState<string>('all');
+  const [programmeFilter, setProgrammeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const [isReversed, setIsReversed] = useState(false);
+  const [rollFrom, setRollFrom] = useState('');
+  const [rollTo, setRollTo] = useState('');
   const [columns, setColumns] = useState({
     rollno: true, programme: true, batch: true, leetcodeRank: true,
     total: true, hard: true, medium: true,
   });
-  const { user } = useAuth();
+  // Logged-out visitors see the public leaderboard without links to LeetRank profiles
+  const { isAuthenticated } = useAuth();
   const itemsPerPage = 20;
 
   useEffect(() => {
@@ -44,14 +59,13 @@ export default function Leaderboard() {
       .catch(() => {});
   }, []);
 
+  // Always fetch the full leaderboard so every entry carries its overall rank;
+  // batch / search / roll range filters are applied client-side without re-ranking.
   useEffect(() => {
     const fetchLeaderboard = async () => {
       setIsLoading(true);
       try {
-        const filters: Record<string, string> = {};
-        if (batchFilter && batchFilter !== 'all') filters.batch = batchFilter;
-        filters.limit = '500';
-        const data = await leaderboardApi.getLeaderboard(filters);
+        const data = await leaderboardApi.getLeaderboard({ limit: '500' });
         setLeaderboardData(data);
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error);
@@ -60,12 +74,27 @@ export default function Leaderboard() {
       }
     };
     fetchLeaderboard();
-  }, [batchFilter]);
+  }, []);
+
+  const rollFromBound = parseRollNo(rollFrom);
+  const rollToBound = parseRollNo(rollTo);
+  const rollFromInvalid = rollFrom.trim() !== '' && !rollFromBound;
+  const rollToInvalid = rollTo.trim() !== '' && !rollToBound;
+  const rollPrefixMismatch =
+    !!rollFromBound && !!rollToBound && rollFromBound.prefix !== rollToBound.prefix;
 
   const filteredData = useMemo(() => {
     let data = [...leaderboardData];
 
-    // Apply search filter (client-side)
+    if (batchFilter !== 'all') {
+      data = data.filter((entry) => entry.batch === batchFilter);
+    }
+
+    if (programmeFilter !== 'all') {
+      const wanted = normalizeProgramme(programmeFilter);
+      data = data.filter((entry) => normalizeProgramme(entry.programme) === wanted);
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       data = data.filter(
@@ -75,14 +104,25 @@ export default function Leaderboard() {
       );
     }
 
-    // Reverse order if toggled
+    // Roll number range (inclusive). Incomplete bounds are ignored until they're valid.
+    const rollFromBound = parseRollNo(rollFrom);
+    const rollToBound = parseRollNo(rollTo);
+    if (rollFromBound || rollToBound) {
+      data = data.filter((entry) => {
+        const roll = parseRollNo(entry.rollno || '');
+        if (!roll) return false;
+        if (rollFromBound && (roll.prefix !== rollFromBound.prefix || roll.num < rollFromBound.num)) return false;
+        if (rollToBound && (roll.prefix !== rollToBound.prefix || roll.num > rollToBound.num)) return false;
+        return true;
+      });
+    }
+
     if (isReversed) {
       data.reverse();
     }
 
-    // Recalculate ranks
-    return data.map((entry, index) => ({ ...entry, rank: index + 1 }));
-  }, [leaderboardData, searchQuery, isReversed]);
+    return data;
+  }, [leaderboardData, batchFilter, programmeFilter, searchQuery, rollFrom, rollTo, isReversed]);
 
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -94,10 +134,54 @@ export default function Leaderboard() {
   const clearFilters = () => {
     setSearchQuery('');
     setBatchFilter('all');
+    setProgrammeFilter('all');
+    setRollFrom('');
+    setRollTo('');
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = searchQuery || batchFilter !== 'all';
+  const hasRollFilter = rollFrom.trim() !== '' || rollTo.trim() !== '';
+  const hasActiveFilters = searchQuery || batchFilter !== 'all' || programmeFilter !== 'all' || hasRollFilter;
+
+  const programmeSelect = (triggerClassName?: string) => (
+    <Select value={programmeFilter} onValueChange={(v) => { setProgrammeFilter(v); setCurrentPage(1); }}>
+      <SelectTrigger className={triggerClassName}>
+        <SelectValue placeholder="Programme" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Programmes</SelectItem>
+        {PROGRAMMES.map((programme) => (
+          <SelectItem key={programme} value={programme}>{programme}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+
+  const rollRangeInputs = (
+    <div className="flex items-center gap-2">
+      <Input
+        placeholder="From CT-23001"
+        value={rollFrom}
+        onChange={(e) => { setRollFrom(e.target.value.toUpperCase()); setCurrentPage(1); }}
+        aria-invalid={rollFromInvalid || rollPrefixMismatch}
+        className={`w-full sm:w-[150px] ${rollFromInvalid || rollPrefixMismatch ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+      />
+      <span className="text-sm text-muted-foreground">to</span>
+      <Input
+        placeholder="To CT-23050"
+        value={rollTo}
+        onChange={(e) => { setRollTo(e.target.value.toUpperCase()); setCurrentPage(1); }}
+        aria-invalid={rollToInvalid || rollPrefixMismatch}
+        className={`w-full sm:w-[150px] ${rollToInvalid || rollPrefixMismatch ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+      />
+    </div>
+  );
+
+  const rollRangeHint = rollPrefixMismatch
+    ? 'Both roll numbers must have the same prefix (e.g. CT-23001 to CT-23050).'
+    : rollFromInvalid || rollToInvalid
+      ? 'Use the format CT-23001.'
+      : null;
 
   if (isLoading) {
     return <PageLoader message="Loading leaderboard..." />;
@@ -115,9 +199,9 @@ export default function Leaderboard() {
 
       {/* Filters */}
       <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-full sm:w-[280px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by name or username..."
@@ -140,13 +224,15 @@ export default function Leaderboard() {
             Filters
             {hasActiveFilters && (
               <span className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                {[searchQuery, batchFilter !== 'all'].filter(Boolean).length}
+                {[searchQuery, batchFilter !== 'all', programmeFilter !== 'all', hasRollFilter].filter(Boolean).length}
               </span>
             )}
           </Button>
 
           {/* Desktop filters */}
-          <div className="hidden sm:flex gap-3">
+          <div className="hidden sm:flex sm:items-center gap-3">
+            {rollRangeInputs}
+
             <Select value={batchFilter} onValueChange={(v) => { setBatchFilter(v); setCurrentPage(1); }}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Batch" />
@@ -159,6 +245,8 @@ export default function Leaderboard() {
               </SelectContent>
             </Select>
 
+            {programmeSelect('w-[160px]')}
+
             {hasActiveFilters && (
               <Button variant="ghost" onClick={clearFilters}>
                 Clear filters
@@ -167,9 +255,17 @@ export default function Leaderboard() {
           </div>
         </div>
 
+        {rollRangeHint && (
+          <p className="hidden sm:block text-sm text-destructive">{rollRangeHint}</p>
+        )}
+
         {/* Mobile filters dropdown */}
         {showFilters && (
           <div className="sm:hidden grid grid-cols-2 gap-3 p-4 border rounded-lg bg-card animate-slide-down">
+            <div className="col-span-2">{rollRangeInputs}</div>
+            {rollRangeHint && (
+              <p className="col-span-2 text-sm text-destructive">{rollRangeHint}</p>
+            )}
             <Select value={batchFilter} onValueChange={(v) => { setBatchFilter(v); setCurrentPage(1); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Batch" />
@@ -181,6 +277,8 @@ export default function Leaderboard() {
                 ))}
               </SelectContent>
             </Select>
+
+            {programmeSelect()}
 
             {hasActiveFilters && (
               <Button variant="outline" onClick={clearFilters} className="col-span-2">
@@ -215,7 +313,7 @@ export default function Leaderboard() {
               {columns.total && <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Total</th>}
               {columns.hard && <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Hard</th>}
               {columns.medium && <th className="px-6 py-4 text-center text-sm font-medium text-muted-foreground">Medium</th>}
-              <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">Actions</th>
+              {isAuthenticated && <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -228,7 +326,13 @@ export default function Leaderboard() {
                   <div className="flex items-center gap-3">
                     <Avatar name={entry.name} src={entry.stats.avatar} size="sm" />
                     <div>
-                      <div className="font-medium"><a href={`${ROUTES.PROFILE}/${entry.id}`} target="_blank" rel="noopener noreferrer">{entry.name}</a></div>
+                      <div className="font-medium">
+                        {isAuthenticated ? (
+                          <a href={`${ROUTES.PROFILE}/${entry.id}`} target="_blank" rel="noopener noreferrer">{entry.name}</a>
+                        ) : (
+                          entry.name
+                        )}
+                      </div>
                       <a
                         href={entry.leetcodeProfileURL}
                         target="_blank"
@@ -276,11 +380,13 @@ export default function Leaderboard() {
                     <DifficultyBadge difficulty="medium" count={entry.stats.mediumSolved} showLabel={false} />
                   </td>
                 )}
-                <td className="px-6 py-4 text-right">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={`${ROUTES.PROFILE}/${entry.id}`}>View</Link>
-                  </Button>
-                </td>
+                {isAuthenticated && (
+                  <td className="px-6 py-4 text-right">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to={`${ROUTES.PROFILE}/${entry.id}`}>View</Link>
+                    </Button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

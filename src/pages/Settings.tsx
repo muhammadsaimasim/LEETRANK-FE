@@ -78,7 +78,6 @@ export default function Settings() {
     resolver: zodResolver(leetcodeUpdateSchema),
     defaultValues: {
       leetcodeUsername: user?.leetcodeUsername || '',
-      leetcodeProfileURL: user?.leetcodeProfileURL || '',
     },
   });
 
@@ -266,20 +265,6 @@ export default function Settings() {
                 {leetcodeForm.formState.errors.leetcodeUsername && (
                   <p className="text-sm text-destructive">
                     {leetcodeForm.formState.errors.leetcodeUsername.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="leetcodeProfileURL">Profile URL</Label>
-                <Input
-                  id="leetcodeProfileURL"
-                  {...leetcodeForm.register('leetcodeProfileURL')}
-                  className={leetcodeForm.formState.errors.leetcodeProfileURL ? 'border-destructive' : ''}
-                />
-                {leetcodeForm.formState.errors.leetcodeProfileURL && (
-                  <p className="text-sm text-destructive">
-                    {leetcodeForm.formState.errors.leetcodeProfileURL.message}
                   </p>
                 )}
               </div>

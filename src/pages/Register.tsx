@@ -45,7 +45,6 @@ export default function Register() {
         password: data.password,
         rollno: data.rollno,
         leetcodeUsername: data.leetcodeUsername,
-        leetcodeProfileURL: data.leetcodeProfileURL,
         batch: data.batch,
         programme: data.programme,
       });
@@ -147,32 +146,20 @@ export default function Register() {
             </div>
 
             {/* LeetCode Info */}
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="leetcodeUsername">LeetCode Username</Label>
-                <Input
-                  id="leetcodeUsername"
-                  placeholder="your_username"
-                  {...register('leetcodeUsername')}
-                  className={errors.leetcodeUsername ? 'border-destructive' : ''}
-                />
-                {errors.leetcodeUsername && (
-                  <p className="text-sm text-destructive">{errors.leetcodeUsername.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="leetcodeProfileURL">LeetCode Profile URL</Label>
-                <Input
-                  id="leetcodeProfileURL"
-                  placeholder="https://leetcode.com/username"
-                  {...register('leetcodeProfileURL')}
-                  className={errors.leetcodeProfileURL ? 'border-destructive' : ''}
-                />
-                {errors.leetcodeProfileURL && (
-                  <p className="text-sm text-destructive">{errors.leetcodeProfileURL.message}</p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="leetcodeUsername">LeetCode Username</Label>
+              <Input
+                id="leetcodeUsername"
+                placeholder="your_username"
+                {...register('leetcodeUsername')}
+                className={errors.leetcodeUsername ? 'border-destructive' : ''}
+              />
+              {errors.leetcodeUsername && (
+                <p className="text-sm text-destructive">{errors.leetcodeUsername.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                The part after leetcode.com/u/ in your profile link
+              </p>
             </div>
 
             {/* Batch & Programme */}

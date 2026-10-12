@@ -30,10 +30,6 @@ export const registerSchema = z.object({
     .min(1, 'LeetCode username is required')
     .max(50, 'Username must be less than 50 characters')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens, and underscores'),
-  leetcodeProfileURL: z
-    .string()
-    .url('Please enter a valid URL')
-    .regex(/leetcode\.com/, 'URL must be a LeetCode profile URL'),
   batch: z.string().min(1, 'Please select your batch'),
   programme: z.string().min(1, 'Please select your programme'),
 });
@@ -59,10 +55,6 @@ export const leetcodeUpdateSchema = z.object({
     .min(1, 'LeetCode username is required')
     .max(50, 'Username must be less than 50 characters')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens, and underscores'),
-  leetcodeProfileURL: z
-    .string()
-    .url('Please enter a valid URL')
-    .regex(/leetcode\.com/, 'URL must be a LeetCode profile URL'),
 });
 
 export const passwordChangeSchema = z

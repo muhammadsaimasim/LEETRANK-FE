@@ -1,4 +1,5 @@
 import { BASE_URL } from '../Environment/env.js';
+import { leetcodeProfileURL } from '../lib/utils';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
@@ -42,7 +43,7 @@ const transformUser = (user) => {
     rollno: user.rollno,
     programme: user.programme,
     leetcodeUsername: user.leetcodeUsername,
-    leetcodeProfileURL: user.leetcodeProfileURL,
+    leetcodeProfileURL: leetcodeProfileURL(user.leetcodeUsername),
     batch: user.batch,
     department: user.department,
     stats: user.stats

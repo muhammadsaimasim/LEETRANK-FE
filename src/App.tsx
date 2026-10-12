@@ -38,8 +38,6 @@ const App = () => (
                 {/* Public Routes */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/profile/:id" element={<UserProfile />} />
-                
                 {/* Auth Routes (redirect if logged in) */}
                 <Route
                   path="/login"
@@ -83,6 +81,14 @@ const App = () => (
                 />
                 
                 {/* Protected Routes */}
+                <Route
+                  path="/profile/:id"
+                  element={
+                    <ProtectedRoute>
+                      <UserProfile />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/dashboard"
                   element={
